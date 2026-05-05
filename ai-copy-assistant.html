@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>AI 文案助手</title>
+  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
   <style>
     :root {
       --bg: #f4f6f9;
@@ -555,7 +556,7 @@
         <h2>生成结果</h2>
       </div>
       <div class="out-ppt-direct-row" id="outPptDirectRow" hidden>
-        <button type="button" class="btn-ppt-aippt" id="btnDirectPPT">直接生成PPT</button>
+        <button type="button" class="btn-ppt-aippt" id="btnDirectPPT">生成并下载PPT</button>
       </div>
       <p class="ppt-aippt-toast" id="pptAipptToast" role="status" aria-live="polite"></p>
       <div id="outputBox" class="placeholder">点击「生成文案」后将在这里显示 AI 返回的最终结果。</div>
@@ -581,9 +582,6 @@
       const outPptDirectRow = document.getElementById("outPptDirectRow");
       const btnDirectPPT = document.getElementById("btnDirectPPT");
       const pptAipptToast = document.getElementById("pptAipptToast");
-
-      const AIPPT_ORIGIN_URL = "https://www.aippt.cn";
-      const AIPPT_TOAST_TEXT = "内容已复制，请在 AiPPT 输入框中粘贴";
 
       let pptAipptToastTimer = null;
 
@@ -636,15 +634,6 @@
         pptAipptToast.textContent = "";
       }
 
-      function showPptAipptToastTimed() {
-        hidePptAipptToast();
-        pptAipptToast.textContent = AIPPT_TOAST_TEXT;
-        pptAipptToast.classList.add("visible");
-        pptAipptToastTimer = setTimeout(function () {
-          hidePptAipptToast();
-        }, 3000);
-      }
-
       function syncPptOnlyResultExtras() {
         if (currentMode === "ppt") {
           outPptDirectRow.removeAttribute("hidden");
@@ -652,6 +641,17 @@
           outPptDirectRow.setAttribute("hidden", "");
           hidePptAipptToast();
         }
+      }
+
+      function getSelectedMode() {
+        var activeBtn = document.querySelector(".mode-btn.active");
+        if (activeBtn) {
+          var mode = activeBtn.getAttribute("data-mode");
+          if (mode) {
+            return mode;
+          }
+        }
+        return currentMode;
       }
 
       document.querySelectorAll(".mode-btn").forEach(function (btn) {
@@ -675,6 +675,110 @@
       function blk(title, body) {
         const t = (body || "").trim();
         return "【" + title + "】\n" + (t ? t : "（未填写——请你在不臆造事实的前提下，列出我还需要补充的要点，或对整体方向给出合理草稿框架。）");
+      }
+
+      function sanitizeFilename(name) {
+        var base = (name || "PPT报告").trim();
+        if (!base) {
+          base = "PPT报告";
+        }
+        return base.replace(/[\\/:*?"<>|]/g, "_").slice(0, 60);
+      }
+
+      function extractJsonObject(rawText) {
+        if (!rawText) {
+          return null;
+        }
+        var text = String(rawText).trim();
+        var fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+        if (fenceMatch && fenceMatch[1]) {
+          text = fenceMatch[1].trim();
+        }
+        var start = text.indexOf("{");
+        var end = text.lastIndexOf("}");
+        if (start === -1 || end === -1 || end <= start) {
+          return null;
+        }
+        var candidate = text.slice(start, end + 1);
+        try {
+          return JSON.parse(candidate);
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function buildAndDownloadPptx(pptJson, theme) {
+        var title = (pptJson && typeof pptJson.title === "string" && pptJson.title.trim()) ? pptJson.title.trim() : (theme || "PPT报告");
+        var slides = (pptJson && Array.isArray(pptJson.slides)) ? pptJson.slides : [];
+        if (!slides.length) {
+          throw new Error("返回的 JSON 中缺少 slides 数组");
+        }
+
+        var pptx = new PptxGenJS();
+        pptx.layout = "LAYOUT_WIDE";
+        pptx.author = "AI 文案助手";
+        pptx.subject = title;
+        pptx.title = title;
+
+        slides.forEach(function (s) {
+          var slide = pptx.addSlide();
+          var slideTitle = (s && typeof s.title === "string" && s.title.trim()) ? s.title.trim() : "未命名页面";
+          var points = (s && Array.isArray(s.points)) ? s.points.filter(function (p) { return typeof p === "string" && p.trim(); }) : [];
+          var note = (s && typeof s.note === "string") ? s.note.trim() : "";
+
+          slide.background = { color: "FFFFFF" };
+          slide.addShape(pptx.ShapeType.rect, {
+            x: 0,
+            y: 0,
+            w: 13.33,
+            h: 0.95,
+            fill: { color: "1E3A5F" },
+            line: { color: "1E3A5F" },
+          });
+          slide.addText(slideTitle, {
+            x: 0.45,
+            y: 0.22,
+            w: 12.4,
+            h: 0.48,
+            color: "FFFFFF",
+            fontSize: 22,
+            bold: true,
+            fontFace: "Microsoft YaHei",
+          });
+
+          var bulletRuns = points.length
+            ? points.map(function (p) {
+                return { text: p, options: { bullet: { indent: 18 } } };
+              })
+            : [{ text: "（本页要点待补）", options: { bullet: { indent: 18 } } }];
+
+          slide.addText(bulletRuns, {
+            x: 0.7,
+            y: 1.25,
+            w: 12.0,
+            h: 5.3,
+            color: "1E293B",
+            fontSize: 20,
+            breakLine: true,
+            paraSpaceAfterPt: 14,
+            fontFace: "Microsoft YaHei",
+          });
+
+          if (note) {
+            slide.addText("备注：" + note, {
+              x: 0.7,
+              y: 6.75,
+              w: 12.0,
+              h: 0.55,
+              color: "64748B",
+              fontSize: 12,
+              italic: true,
+              fontFace: "Microsoft YaHei",
+            });
+          }
+        });
+
+        return pptx.writeFile({ fileName: sanitizeFilename(title) + ".pptx" });
       }
 
       function isCurrentFormEmpty(mode) {
@@ -801,47 +905,42 @@
           var pptMat = document.getElementById("pptMaterials").value;
           var pptSt = checkedRadio("pptStyle");
           var stNote = PPT_STYLE_NOTE[pptSt] || ("按我选择的风格「" + pptSt + "」，平衡信息密度与视觉描述。");
-          var pageGuide =
+          var slideCountHint =
             pptPg === "5页以内"
-              ? "请将整份大纲控制在约 5 页或以内（若含封面／目录／致谢，请并入总预算并说明必要性）；每页务必极度克制，一页一事。"
+              ? "请生成 4~5 页。"
               : pptPg === "10页左右"
-                ? "请按约 8～12 页规划（以「约 10 页」为中值），章节过渡清晰，可按「引入—论证—收尾」递进。"
-                : "请规划不少于约 15 页（可适当超过），允许分章（背景 / 分析 / 方案 / 路线图 / 资源与风险 / Q&A）以支撑论据。";
+                ? "请生成 9~11 页。"
+                : "请生成至少 15 页。";
           lines = [
-            "请你扮演资深中文演示文稿结构与叙事顾问（熟悉 Keynote／PowerPoint 逻辑，但只需输出文本策划案）。请直接用「简体中文」输出，便于我粘贴到 Claude／ChatGPT 后再生成幻灯片文稿或导图；不要做无关寒暄，也不必输出 .pptx。",
+            "你是一位资深中文商务 PPT 策划专家。请根据以下输入，产出可直接用于生成演示文稿的大纲。",
             "",
-            "──────── 我对这份演示的需求 ────────",
+            "【输入信息】",
+            "报告主题：" + (pptTh || "未填写"),
+            "汇报对象：" + (pptAud || "未填写"),
+            "页数要求：" + (pptPg || "未填写") + "（" + slideCountHint + "）",
+            "核心内容：" + (pptCore || "未填写"),
+            "已有数据或素材：" + (pptMat || "无"),
+            "风格要求：" + (pptSt || "未填写") + "（" + stNote + "）",
             "",
-            blk("报告主题（整份 Deck 要讲清的一句话命题）", pptTh),
+            "【输出要求】",
+            "1) 严格只输出 JSON，不要输出任何额外解释、Markdown、代码块。",
+            "2) JSON 结构必须为：",
+            "{",
+            '  "title": "PPT总标题",',
+            '  "slides": [',
+            "    {",
+            '      "title": "页标题",',
+            '      "points": ["要点1", "要点2", "要点3"],',
+            '      "note": "演讲备注"',
+            "    }",
+            "  ]",
+            "}",
             "",
-            blk(
-              "听众与汇报场景",
-              pptAud +
-                "。请据此拿捏信息深度：对公司高层与投资人类读者偏「结论先行 + 一页一观点」；对客户偏「痛点—价值—Proof」；对团队内部可走「里程碑 + 责任人 + Next step」。"
-            ),
-            "",
-            blk("总页数档位（请务必作为硬约束微调章节颗粒度）", pptPg + "。" + pageGuide),
-            "",
-            blk("我心中每页要讲的核心信息与故事线（可粗糙，可分条或分页意向）", pptCore),
-            "",
-            blk("我手头已有的数据／图表／案例素材（仅能使用或合理延续以下信息）", pptMat),
-            "",
-            blk("幻灯片总体视觉与语气风格（用于指导图示与用词）", pptSt + "。" + stNote),
-            "",
-            "──────── 请按以下结构化输出 ────────",
-            "",
-            "对每一页幻灯片依次输出一个完整区块（页数必须与「" + pptPg + "」档位基本一致，首尾可用封面／目录／总结／致谢等常规页占位并计入总页）：",
-            "",
-            "『第 X 页：本页标题（建议 15 字内）』",
-            "一、核心内容要点（请务必列 3～5 条短句条目，互不重复，能让我直接粘到幻灯片要点区）；",
-            "二、建议配图或图表类型（例如：柱状/折线/漏斗示意图、竞品对比表架构、用户旅程箭头图、实拍产品组合图占位、地图热力概念等——写清图表想证明什么讯息）；若本页是纯叙事页，也需说明可用的视觉隐喻；",
-            "三、演讲口播要点（用口语化提纲，帮助我现场讲清楚；含转场钩子与需强调的数字或金句占位；每项口播提纲请控制在 3～6 条短子弹）。",
-            "",
-            "附：最后附一段不超过 120 字的「整体叙事线」提要，帮助我串场；再给一条「若我只有一半时间应先砍哪几页」的取舍建议（只列页码序号或页名）。",
-            "",
-            "禁止编造我从未提供的硬性数据、机密客户名或未授权的案例；空缺处标注【待补数据】并请一句话提示我补充什么。不要使用 Markdown 的 # 作为标题层级，但可以用「第 X 页」这样的纯文本标题。",
-            "",
-            "现在请从第 1 页开始完整输出。",
+            "3) slides 数量需符合页数要求。",
+            "4) 每页 points 给出 3~5 条，简短、可直接上 PPT。",
+            "5) note 为该页演讲备注，1~2 句即可。",
+            "6) 内容需符合 " + pptAud + " 的阅读偏好，风格遵循 " + pptSt + "。",
+            "7) 如果输入信息不足，请合理补全但保持商务专业。",
           ];
           return lines.join("\n");
         }
@@ -898,37 +997,68 @@
         errorBox.classList.remove("visible");
       }
 
-      btnDirectPPT.addEventListener("click", function () {
-        const txt = getOutputPromptText();
-        if (!txt) {
-          clearError();
-          hidePptAipptToast();
-          showError("没有可复制的内容。");
+      btnDirectPPT.addEventListener("click", async function () {
+        var mode = getSelectedMode();
+        if (mode !== "ppt") {
+          showError("请先切换到 PPT报告 模式。");
           return;
         }
+        if (isCurrentFormEmpty("ppt")) {
+          clearError();
+          showError("请先填写 PPT 报告信息，再生成并下载。");
+          return;
+        }
+
         clearError();
         hidePptAipptToast();
-        (async function () {
-          try {
-            await navigator.clipboard.writeText(txt);
-            window.open(AIPPT_ORIGIN_URL, "_blank", "noopener,noreferrer");
-            showPptAipptToastTimed();
-          } catch (_) {
-            showError("复制失败，请使用「复制文案」后手动在 AiPPT 中粘贴。");
+
+        var pptPrompt = buildMetaPrompt("ppt");
+        var prevText = btnDirectPPT.textContent;
+        btnDirectPPT.disabled = true;
+        btnDirectPPT.textContent = "正在生成PPT...";
+
+        try {
+          const resp = await fetch("/api/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: pptPrompt, expectJson: true }),
+          });
+          const data = await resp.json().catch(function () { return null; });
+          if (!resp.ok) {
+            throw new Error((data && data.error) || "PPT 生成请求失败");
           }
-        })();
+
+          var raw = data && typeof data.text === "string" ? data.text : "";
+          var parsed = extractJsonObject(raw);
+          if (!parsed) {
+            throw new Error("模型未返回可解析的 JSON PPT 结构");
+          }
+
+          var pptTheme = document.getElementById("pptTheme").value || "PPT报告";
+          await buildAndDownloadPptx(parsed, pptTheme);
+          outputBox.textContent = "PPT 已生成并开始下载。";
+          outputBox.classList.remove("placeholder");
+        } catch (err) {
+          showError(err && err.message ? err.message : "生成 PPT 失败，请稍后重试。");
+        } finally {
+          btnDirectPPT.disabled = false;
+          btnDirectPPT.textContent = prevText;
+        }
       });
 
       btnGenerate.addEventListener("click", async function () {
+        var mode = getSelectedMode();
+        currentMode = mode;
+        syncPptOnlyResultExtras();
         clearError();
         hidePptAipptToast();
-        if (isCurrentFormEmpty(currentMode)) {
+        if (isCurrentFormEmpty(mode)) {
           showError("请先在当前模式中至少填写一项内容，以便生成有意义的提示词。");
           outputBox.textContent = DEFAULT_OUTPUT_HINT;
           outputBox.classList.add("placeholder");
           return;
         }
-        const prompt = buildMetaPrompt(currentMode);
+        const prompt = buildMetaPrompt(mode);
         const previousText = btnGenerate.textContent;
         btnGenerate.disabled = true;
         btnGenerate.textContent = "生成中...";
