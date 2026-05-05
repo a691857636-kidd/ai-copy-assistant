@@ -277,14 +277,6 @@
       font-weight: 700;
     }
 
-    .out-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      justify-content: flex-end;
-    }
-
     button.secondary {
       padding: 8px 14px;
       border-radius: 8px;
@@ -301,76 +293,8 @@
       background: #f8fafc;
     }
 
-    .dropdown-wrap {
-      position: relative;
-    }
-
-    .dropdown-wrap .dropdown-toggle .caret {
-      display: inline-block;
-      margin-left: 4px;
-      font-size: 0.75em;
-      opacity: 0.75;
-      vertical-align: middle;
-    }
-
-    .dropdown-menu-ai {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: calc(100% + 6px);
-      z-index: 30;
-      min-width: 236px;
-      padding: 6px;
-      margin: 0;
-      list-style: none;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      box-shadow: var(--shadow);
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .dropdown-wrap.is-open .dropdown-menu-ai {
-      display: flex;
-    }
-
-    .dropdown-wrap.is-open > .dropdown-toggle {
-      background: #f1f5f9;
-    }
-
-    .dropdown-item-ai {
-      display: block;
-      width: 100%;
-      text-align: left;
-      padding: 10px 12px;
-      border: none;
-      border-radius: 8px;
-      background: transparent;
-      font: inherit;
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--text);
-      cursor: pointer;
-      transition: background 0.12s;
-    }
-
-    .dropdown-menu-ai > li {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .dropdown-item-ai:hover {
-      background: #f8fafc;
-    }
-
-    .dropdown-item-ai-desc {
-      display: block;
-      font-weight: 400;
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 2px;
+    .result-actions {
+      margin-top: 12px;
     }
 
     #outputBox {
@@ -403,19 +327,47 @@
       display: block;
     }
 
-    .platform-banner {
+    .out-ppt-direct-row {
+      margin-bottom: 12px;
+    }
+
+    .out-ppt-direct-row[hidden] {
+      display: none !important;
+    }
+
+    .btn-ppt-aippt {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      font: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      background: #16a34a;
+      color: #fff;
+    }
+
+    .btn-ppt-aippt:hover {
+      background: #15803d;
+    }
+
+    .ppt-aippt-toast {
       margin-bottom: 12px;
       padding: 10px 12px;
       border-radius: 10px;
       font-size: 0.875rem;
       line-height: 1.5;
       display: none;
-      background: #eff6ff;
-      color: #1e40af;
-      border: 1px solid #bfdbfe;
+      background: #ecfdf5;
+      color: #166534;
+      border: 1px solid #86efac;
     }
 
-    .platform-banner.visible {
+    .ppt-aippt-toast.visible {
       display: block;
     }
 
@@ -601,44 +553,15 @@
     <div class="card">
       <div class="out-header">
         <h2>生成结果</h2>
-        <div class="out-actions">
-          <button type="button" class="secondary" id="btnCopy">复制文案</button>
-          <div class="dropdown-wrap" id="platformDropdown">
-            <button type="button" class="secondary dropdown-toggle" id="platformToggle" aria-expanded="false" aria-haspopup="listbox">
-              选择 AI 平台生成<span class="caret" aria-hidden="true"> ▾</span>
-            </button>
-            <ul class="dropdown-menu-ai" id="platformMenu" role="listbox" aria-labelledby="platformToggle" aria-hidden="true">
-              <li role="presentation">
-                <button type="button" class="dropdown-item-ai" role="option" data-kind="query" data-base="https://claude.ai/new?q=">
-                  Claude（国际）<span class="dropdown-item-ai-desc">网址栏带出提示词</span>
-                </button>
-              </li>
-              <li role="presentation">
-                <button type="button" class="dropdown-item-ai" role="option" data-kind="copy" data-base="https://www.doubao.com/chat/">
-                  豆包（字节）<span class="dropdown-item-ai-desc">复制后跳转</span>
-                </button>
-              </li>
-              <li role="presentation">
-                <button type="button" class="dropdown-item-ai" role="option" data-kind="copy" data-base="https://yiyan.baidu.com/">
-                  文心一言（百度）<span class="dropdown-item-ai-desc">复制后跳转</span>
-                </button>
-              </li>
-              <li role="presentation">
-                <button type="button" class="dropdown-item-ai" role="option" data-kind="copy" data-base="https://tongyi.aliyun.com/qianwen/">
-                  通义千问（阿里）<span class="dropdown-item-ai-desc">复制后跳转</span>
-                </button>
-              </li>
-              <li role="presentation">
-                <button type="button" class="dropdown-item-ai" role="option" data-kind="copy" data-base="https://kimi.moonshot.cn/">
-                  Kimi<span class="dropdown-item-ai-desc">复制后跳转</span>
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
       </div>
-      <p class="platform-banner" id="platformBanner" role="status" aria-live="polite"></p>
-      <div id="outputBox" class="placeholder">点击「生成文案」后将生成可复制的中文提示词，粘贴到 Claude、ChatGPT 等对话中即可代为撰写。</div>
+      <div class="out-ppt-direct-row" id="outPptDirectRow" hidden>
+        <button type="button" class="btn-ppt-aippt" id="btnDirectPPT">直接生成PPT</button>
+      </div>
+      <p class="ppt-aippt-toast" id="pptAipptToast" role="status" aria-live="polite"></p>
+      <div id="outputBox" class="placeholder">点击「生成文案」后将在这里显示 AI 返回的最终结果。</div>
+      <div class="result-actions">
+        <button type="button" class="secondary" id="btnCopyResult">复制结果</button>
+      </div>
     </div>
 
     <footer>
@@ -649,18 +572,20 @@
   <script>
     (function () {
       const DEFAULT_OUTPUT_HINT =
-        '点击「生成文案」后将生成可复制的中文提示词，粘贴到 Claude、ChatGPT 等对话中即可代为撰写。';
+        '点击「生成文案」后将在这里显示 AI 返回的最终结果。';
 
       const btnGenerate = document.getElementById("btnGenerate");
-      const btnCopy = document.getElementById("btnCopy");
+      const btnCopyResult = document.getElementById("btnCopyResult");
       const outputBox = document.getElementById("outputBox");
       const errorBox = document.getElementById("errorBox");
-      const platformDropdown = document.getElementById("platformDropdown");
-      const platformToggle = document.getElementById("platformToggle");
-      const platformMenu = document.getElementById("platformMenu");
-      const platformBanner = document.getElementById("platformBanner");
+      const outPptDirectRow = document.getElementById("outPptDirectRow");
+      const btnDirectPPT = document.getElementById("btnDirectPPT");
+      const pptAipptToast = document.getElementById("pptAipptToast");
 
-      const COPY_THEN_OPEN_HINT = "提示词已复制，请在打开的网页对话框中粘贴。";
+      const AIPPT_ORIGIN_URL = "https://www.aippt.cn";
+      const AIPPT_TOAST_TEXT = "内容已复制，请在 AiPPT 输入框中粘贴";
+
+      let pptAipptToastTimer = null;
 
       let currentMode = "email";
 
@@ -702,6 +627,33 @@
         return "请严格遵循我在上方勾选的字数档位控制篇幅。";
       }
 
+      function hidePptAipptToast() {
+        if (pptAipptToastTimer !== null) {
+          clearTimeout(pptAipptToastTimer);
+          pptAipptToastTimer = null;
+        }
+        pptAipptToast.classList.remove("visible");
+        pptAipptToast.textContent = "";
+      }
+
+      function showPptAipptToastTimed() {
+        hidePptAipptToast();
+        pptAipptToast.textContent = AIPPT_TOAST_TEXT;
+        pptAipptToast.classList.add("visible");
+        pptAipptToastTimer = setTimeout(function () {
+          hidePptAipptToast();
+        }, 3000);
+      }
+
+      function syncPptOnlyResultExtras() {
+        if (currentMode === "ppt") {
+          outPptDirectRow.removeAttribute("hidden");
+        } else {
+          outPptDirectRow.setAttribute("hidden", "");
+          hidePptAipptToast();
+        }
+      }
+
       document.querySelectorAll(".mode-btn").forEach(function (btn) {
         btn.addEventListener("click", function () {
           const mode = btn.getAttribute("data-mode");
@@ -714,8 +666,11 @@
           Object.keys(modePanels).forEach(function (k) {
             modePanels[k].classList.toggle("visible", k === mode);
           });
+          syncPptOnlyResultExtras();
         });
       });
+
+      syncPptOnlyResultExtras();
 
       function blk(title, body) {
         const t = (body || "").trim();
@@ -943,52 +898,67 @@
         errorBox.classList.remove("visible");
       }
 
-      function hidePlatformBanner() {
-        platformBanner.textContent = "";
-        platformBanner.classList.remove("visible");
-      }
-
-      function showPlatformBanner(msg) {
-        platformBanner.textContent = msg;
-        platformBanner.classList.add("visible");
-      }
-
-      function setPlatformDropdownOpen(open) {
-        platformDropdown.classList.toggle("is-open", open);
-        platformToggle.setAttribute("aria-expanded", open ? "true" : "false");
-        platformMenu.setAttribute("aria-hidden", open ? "false" : "true");
-      }
-
-      platformToggle.addEventListener("click", function (ev) {
-        ev.stopPropagation();
-        setPlatformDropdownOpen(!platformDropdown.classList.contains("is-open"));
-      });
-
-      document.addEventListener("click", function () {
-        setPlatformDropdownOpen(false);
-      });
-
-      platformDropdown.addEventListener("click", function (ev) {
-        ev.stopPropagation();
-      });
-
-      document.addEventListener("keydown", function (ev) {
-        if (ev.key === "Escape") {
-          setPlatformDropdownOpen(false);
+      btnDirectPPT.addEventListener("click", function () {
+        const txt = getOutputPromptText();
+        if (!txt) {
+          clearError();
+          hidePptAipptToast();
+          showError("没有可复制的内容。");
+          return;
         }
+        clearError();
+        hidePptAipptToast();
+        (async function () {
+          try {
+            await navigator.clipboard.writeText(txt);
+            window.open(AIPPT_ORIGIN_URL, "_blank", "noopener,noreferrer");
+            showPptAipptToastTimed();
+          } catch (_) {
+            showError("复制失败，请使用「复制文案」后手动在 AiPPT 中粘贴。");
+          }
+        })();
       });
 
-      btnGenerate.addEventListener("click", function () {
+      btnGenerate.addEventListener("click", async function () {
         clearError();
-        hidePlatformBanner();
+        hidePptAipptToast();
         if (isCurrentFormEmpty(currentMode)) {
           showError("请先在当前模式中至少填写一项内容，以便生成有意义的提示词。");
           outputBox.textContent = DEFAULT_OUTPUT_HINT;
           outputBox.classList.add("placeholder");
           return;
         }
-        outputBox.textContent = buildMetaPrompt(currentMode);
-        outputBox.classList.remove("placeholder");
+        const prompt = buildMetaPrompt(currentMode);
+        const previousText = btnGenerate.textContent;
+        btnGenerate.disabled = true;
+        btnGenerate.textContent = "生成中...";
+        outputBox.textContent = "生成中...";
+        outputBox.classList.add("placeholder");
+
+        try {
+          const resp = await fetch("/api/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: prompt }),
+          });
+          const data = await resp.json().catch(function () { return null; });
+          if (!resp.ok) {
+            throw new Error((data && data.error) || "服务请求失败");
+          }
+          const text = data && typeof data.text === "string" ? data.text.trim() : "";
+          if (!text) {
+            throw new Error("接口返回内容为空");
+          }
+          outputBox.textContent = text;
+          outputBox.classList.remove("placeholder");
+        } catch (err) {
+          outputBox.textContent = DEFAULT_OUTPUT_HINT;
+          outputBox.classList.add("placeholder");
+          showError(err && err.message ? err.message : "生成失败，请稍后重试。");
+        } finally {
+          btnGenerate.disabled = false;
+          btnGenerate.textContent = previousText;
+        }
       });
 
       function getOutputPromptText() {
@@ -999,57 +969,23 @@
         return txt;
       }
 
-      platformMenu.querySelectorAll(".dropdown-item-ai").forEach(function (item) {
-        item.addEventListener("click", function () {
-          setPlatformDropdownOpen(false);
-          const txt = getOutputPromptText();
-          if (!txt) {
-            clearError();
-            hidePlatformBanner();
-            showError("没有可复制的内容。");
-            return;
-          }
-          const kind = item.getAttribute("data-kind");
-          const base = item.getAttribute("data-base") || "";
-          clearError();
-          if (kind === "query") {
-            hidePlatformBanner();
-            window.open(base + encodeURIComponent(txt), "_blank", "noopener,noreferrer");
-          } else {
-            (async function () {
-              try {
-                await navigator.clipboard.writeText(txt);
-                hidePlatformBanner();
-                window.open(base, "_blank", "noopener,noreferrer");
-                showPlatformBanner(COPY_THEN_OPEN_HINT);
-              } catch (_) {
-                hidePlatformBanner();
-                showError("复制失败（浏览器可能限制了剪贴板权限），请改用「复制文案」后手动打开对应网站粘贴。");
-              }
-            })();
-          }
-        });
-      });
-
-      btnCopy.addEventListener("click", async function () {
+      btnCopyResult.addEventListener("click", async function () {
         const txt = getOutputPromptText();
         if (!txt) {
           clearError();
-          hidePlatformBanner();
           showError("没有可复制的内容。");
           return;
         }
         clearError();
-        hidePlatformBanner();
         try {
           await navigator.clipboard.writeText(txt);
-          const prev = btnCopy.textContent;
-          btnCopy.textContent = "已复制";
+          const prev = btnCopyResult.textContent;
+          btnCopyResult.textContent = "已复制";
           setTimeout(function () {
-            btnCopy.textContent = prev;
+            btnCopyResult.textContent = prev;
           }, 1600);
         } catch (_) {
-          showError("复制失败，请手动选择文案复制。");
+          showError("复制失败，请手动选择结果复制。");
         }
       });
 
