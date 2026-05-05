@@ -95,7 +95,8 @@
       margin-bottom: 0.45rem;
     }
 
-    label .hint {
+    label .hint,
+    .radios-label .hint {
       font-weight: 400;
       color: var(--muted);
     }
@@ -133,6 +134,36 @@
 
     .field:last-child {
       margin-bottom: 0;
+    }
+
+    .radios-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.55rem;
+    }
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 0.92rem;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    .radio-option input[type="radio"] {
+      margin: 0.28rem 0 0;
+      flex-shrink: 0;
+      accent-color: var(--accent);
     }
 
     .modes {
@@ -270,6 +301,78 @@
       background: #f8fafc;
     }
 
+    .dropdown-wrap {
+      position: relative;
+    }
+
+    .dropdown-wrap .dropdown-toggle .caret {
+      display: inline-block;
+      margin-left: 4px;
+      font-size: 0.75em;
+      opacity: 0.75;
+      vertical-align: middle;
+    }
+
+    .dropdown-menu-ai {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      z-index: 30;
+      min-width: 236px;
+      padding: 6px;
+      margin: 0;
+      list-style: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .dropdown-wrap.is-open .dropdown-menu-ai {
+      display: flex;
+    }
+
+    .dropdown-wrap.is-open > .dropdown-toggle {
+      background: #f1f5f9;
+    }
+
+    .dropdown-item-ai {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      font: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+
+    .dropdown-menu-ai > li {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .dropdown-item-ai:hover {
+      background: #f8fafc;
+    }
+
+    .dropdown-item-ai-desc {
+      display: block;
+      font-weight: 400;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
     #outputBox {
       min-height: 120px;
       padding: 14px;
@@ -300,6 +403,22 @@
       display: block;
     }
 
+    .platform-banner {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      display: none;
+      background: #eff6ff;
+      color: #1e40af;
+      border: 1px solid #bfdbfe;
+    }
+
+    .platform-banner.visible {
+      display: block;
+    }
+
     footer {
       text-align: center;
       margin-top: 1.5rem;
@@ -321,7 +440,7 @@
         <div class="logo" aria-hidden="true">✦</div>
         <div>
           <h1>AI 文案助手</h1>
-          <p class="subtitle">工作邮件 · 小红书 · 工作汇报 · 一键成稿</p>
+          <p class="subtitle">工作邮件 · 小红书 · 工作汇报 · PPT 报告 · 一键成稿</p>
         </div>
       </div>
     </header>
@@ -330,6 +449,7 @@
       <button type="button" class="mode-btn active" data-mode="email" role="tab" aria-selected="true">工作邮件</button>
       <button type="button" class="mode-btn" data-mode="xiaohongshu" role="tab" aria-selected="false">小红书文案</button>
       <button type="button" class="mode-btn" data-mode="report" role="tab" aria-selected="false">工作汇报</button>
+      <button type="button" class="mode-btn" data-mode="ppt" role="tab" aria-selected="false">PPT 报告</button>
     </div>
 
     <div class="card">
@@ -344,29 +464,52 @@
           <input type="text" id="mailPurpose" placeholder="如：申请延期、同步进度、致歉说明" />
         </div>
         <div class="field">
-          <label for="mailKeyPoints">关键信息</label>
-          <textarea id="mailKeyPoints" placeholder="时间线、诉求、附件说明、需注意的事项…"></textarea>
+          <label for="mailBg">事件背景 <span class="hint">发生了什么？一句话说明原因</span></label>
+          <input type="text" id="mailBg" placeholder="例：客户需求临时变更，原方案已不再适用" />
+        </div>
+        <div class="field">
+          <label for="mailAsk">我的诉求 <span class="hint">我希望对方做什么？</span></label>
+          <input type="text" id="mailAsk" placeholder="例：请在本周五下班前书面确认是否可以接受新的交付排期" />
+        </div>
+        <div class="field">
+          <label for="mailTime">时间节点 <span class="hint">截止日期或时限；没有可不填</span></label>
+          <input type="text" id="mailTime" placeholder="例：下周一 17:00 前回复／无硬性截止可不填" />
+        </div>
+        <div class="field">
+          <label for="mailExtra">补充说明 <span class="hint">其他需要注意的事；没有可不填</span></label>
+          <input type="text" id="mailExtra" placeholder="例：见附件预算表链接；对方所在时区为美西，措辞请简明" />
         </div>
       </div>
 
       <!-- 小红书 -->
       <div class="panel" id="panel-xiaohongshu">
         <div class="field">
-          <label for="xhProduct">产品 / 话题</label>
-          <input type="text" id="xhProduct" placeholder="如：护手霜、副业心得、办公软件技巧" />
+          <label for="xhTopic">主题 / 产品 <span class="hint">你要写什么？</span></label>
+          <input type="text" id="xhTopic" placeholder="例：平价防晒霜测评、一周减脂便当、川西三日自驾攻略" />
         </div>
-        <div class="row-split two">
-          <div class="field">
-            <label for="xhAudience">目标人群</label>
-            <input type="text" id="xhAudience" placeholder="如：通勤白领、宝妈、数码爱好者" />
+        <div class="field">
+          <label for="xhReader">目标读者 <span class="hint">写给谁看？</span></label>
+          <input type="text" id="xhReader" placeholder="例：油皮学生党、想瘦身的上班族、第一次去川西的毕业生" />
+        </div>
+        <div class="field">
+          <label for="xhHighlights">内容亮点 <span class="hint">最想突出的 1～2 个卖点或看点</span></label>
+          <input type="text" id="xhHighlights" placeholder="例：百元内高倍防晒不油腻；备菜 10 分钟搞定一周午餐" />
+        </div>
+        <div class="field">
+          <span class="radios-label">文案风格 <span class="hint">以下单选其一</span></span>
+          <div class="radio-group" role="radiogroup" aria-label="文案风格">
+            <label class="radio-option"><input type="radio" name="xhTone" value="种草安利" checked /> 种草安利<span class="hint">（体验式分享，真诚推荐）</span></label>
+            <label class="radio-option"><input type="radio" name="xhTone" value="干货教程" /> 干货教程<span class="hint">（步骤清晰，可复制）</span></label>
+            <label class="radio-option"><input type="radio" name="xhTone" value="情感共鸣" /> 情感共鸣<span class="hint">（故事与共情）</span></label>
+            <label class="radio-option"><input type="radio" name="xhTone" value="搞笑幽默" /> 搞笑幽默<span class="hint">（轻松有趣）</span></label>
           </div>
-          <div class="field">
-            <label for="xhStyle">风格</label>
-            <select id="xhStyle">
-              <option value="种草">种草安利</option>
-              <option value="干货">干货教程</option>
-              <option value="情感">情感共鸣</option>
-            </select>
+        </div>
+        <div class="field">
+          <span class="radios-label">字数要求 <span class="hint">以下单选其一</span></span>
+          <div class="radio-group" role="radiogroup" aria-label="字数要求">
+            <label class="radio-option"><input type="radio" name="xhWords" value="短篇150字内" checked /> 短篇 150 字内<span class="hint">（金句精炼）</span></label>
+            <label class="radio-option"><input type="radio" name="xhWords" value="中篇300字" /> 中篇约 300 字<span class="hint">（信息适中）</span></label>
+            <label class="radio-option"><input type="radio" name="xhWords" value="长篇500字以上" /> 长篇 500 字以上<span class="hint">（可展开细节）</span></label>
           </div>
         </div>
       </div>
@@ -374,20 +517,78 @@
       <!-- 工作汇报 -->
       <div class="panel" id="panel-report">
         <div class="field">
-          <label for="rptSubject">汇报主题</label>
-          <input type="text" id="rptSubject" placeholder="如：第一季度项目进展" />
+          <span class="radios-label">汇报对象 <span class="hint">以下单选其一</span></span>
+          <div class="radio-group" role="radiogroup" aria-label="汇报对象">
+            <label class="radio-option"><input type="radio" name="rptAudience" value="直属上级" checked /> 直属上级</label>
+            <label class="radio-option"><input type="radio" name="rptAudience" value="跨部门" /> 跨部门<span class="hint">（项目组、协作部门等）</span></label>
+            <label class="radio-option"><input type="radio" name="rptAudience" value="全员" /> 全员<span class="hint">（公司或团队范围）</span></label>
+          </div>
         </div>
         <div class="field">
-          <label for="rptDone">本周完成内容</label>
-          <textarea id="rptDone" placeholder="列出本周交付与成果"></textarea>
+          <span class="radios-label">汇报周期 <span class="hint">以下单选其一</span></span>
+          <div class="radio-group" role="radiogroup" aria-label="汇报周期">
+            <label class="radio-option"><input type="radio" name="rptCycle" value="日报" checked /> 日报</label>
+            <label class="radio-option"><input type="radio" name="rptCycle" value="周报" /> 周报</label>
+            <label class="radio-option"><input type="radio" name="rptCycle" value="月报" /> 月报</label>
+            <label class="radio-option"><input type="radio" name="rptCycle" value="项目总结" /> 项目总结</label>
+          </div>
         </div>
         <div class="field">
-          <label for="rptIssues">遇到的问题</label>
-          <textarea id="rptIssues" placeholder="风险、阻塞项、需要的支持"></textarea>
+          <label for="rptCompleted">本期完成的事 <span class="hint">2～4 条，每条一行（换行分隔）</span></label>
+          <textarea id="rptCompleted" placeholder="例：&#10;- 上线了订单导出功能并完成灰度&#10;- 与法务对齐了新版用户协议用词&#10;（或直接分行写要点，不要使用 Markdown 表格）"></textarea>
         </div>
         <div class="field">
-          <label for="rptNext">下周计划</label>
-          <textarea id="rptNext" placeholder="目标、里程碑、对接人"></textarea>
+          <label for="rptRisks">遇到的问题或风险 <span class="hint">没有可不填</span></label>
+          <textarea id="rptRisks" placeholder="例：第三方支付接口配额紧张，可能影响月底对账／暂无则留白"></textarea>
+        </div>
+        <div class="field">
+          <label for="rptNextSteps">下一步计划 <span class="hint">1～3 条，每条一行（换行分隔）</span></label>
+          <textarea id="rptNextSteps" placeholder="例：&#10;- 下周一前完成第二批灰度复盘&#10;- 与运维确认告警阈值"></textarea>
+        </div>
+        <div class="field">
+          <label for="rptSupport">需要支持或资源 <span class="hint">没有可不填（预算、人手、评审、信息等）</span></label>
+          <textarea id="rptSupport" placeholder="例：需法务在周三前终审对外话术／暂无"></textarea>
+        </div>
+      </div>
+
+      <!-- PPT 报告 -->
+      <div class="panel" id="panel-ppt">
+        <div class="field">
+          <label for="pptTheme">报告主题 <span class="hint">这份 PPT 要讲什么？</span></label>
+          <input type="text" id="pptTheme" placeholder="例：Q2 销售复盘、智能家居新品发布会规划、华东区渠道拓展复盘" />
+        </div>
+        <div class="field">
+          <span class="radios-label">汇报对象 <span class="hint">以下单选其一</span></span>
+          <div class="radio-group" role="radiogroup" aria-label="PPT 汇报对象">
+            <label class="radio-option"><input type="radio" name="pptAudience" value="公司高层" checked /> 公司高层<span class="hint">（偏结论与取舍）</span></label>
+            <label class="radio-option"><input type="radio" name="pptAudience" value="客户" /> 客户<span class="hint">（价值与方案）</span></label>
+            <label class="radio-option"><input type="radio" name="pptAudience" value="团队内部" /> 团队内部<span class="hint">（执行与对齐）</span></label>
+            <label class="radio-option"><input type="radio" name="pptAudience" value="投资人" /> 投资人<span class="hint">（增长与风险）</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <span class="radios-label">PPT 总页数 <span class="hint">以下单选其一</span></span>
+          <div class="radio-group" role="radiogroup" aria-label="PPT 页数档位">
+            <label class="radio-option"><input type="radio" name="pptPages" value="5页以内" checked /> 5 页以内<span class="hint">（电梯演讲式）</span></label>
+            <label class="radio-option"><input type="radio" name="pptPages" value="10页左右" /> 10 页左右<span class="hint">（标准汇报）</span></label>
+            <label class="radio-option"><input type="radio" name="pptPages" value="15页以上" /> 15 页以上<span class="hint">（可展开论证）</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="pptCore">核心内容 <span class="hint">希望每页讲什么——可写「封面 / 背景 / 问题 / 方案 / 数据…」或大段分列</span></label>
+          <textarea id="pptCore" placeholder="例：&#10;第 1 页封面：复盘主题与汇报人&#10;第 2 页：本期目标与实际完成对比&#10;第 3 页：问题根因与市场机会&#10;…（也可笼统写一章一节应覆盖的背景、矛盾、解法、路线图）"></textarea>
+        </div>
+        <div class="field">
+          <label for="pptMaterials">已有数据或素材 <span class="hint">可用的数字、图表、案例截图说明；没有可不填</span></label>
+          <textarea id="pptMaterials" placeholder="例：CRM 漏斗截图、同比 23% 增长、某客户 logo 可展示（已授权）／暂无"></textarea>
+        </div>
+        <div class="field">
+          <span class="radios-label">风格要求 <span class="hint">以下单选其一</span></span>
+          <div class="radio-group" role="radiogroup" aria-label="PPT 风格">
+            <label class="radio-option"><input type="radio" name="pptStyle" value="商务正式" checked /> 商务正式<span class="hint">（稳重、结论先行）</span></label>
+            <label class="radio-option"><input type="radio" name="pptStyle" value="简洁极简" /> 简洁极简<span class="hint">（大图少字、留白）</span></label>
+            <label class="radio-option"><input type="radio" name="pptStyle" value="活泼创意" /> 活泼创意<span class="hint">（图标与色彩更活泼）</span></label>
+          </div>
         </div>
       </div>
 
@@ -402,9 +603,41 @@
         <h2>生成结果</h2>
         <div class="out-actions">
           <button type="button" class="secondary" id="btnCopy">复制文案</button>
-          <button type="button" class="secondary" id="btnOpenClaude">在 Claude 中生成</button>
+          <div class="dropdown-wrap" id="platformDropdown">
+            <button type="button" class="secondary dropdown-toggle" id="platformToggle" aria-expanded="false" aria-haspopup="listbox">
+              选择 AI 平台生成<span class="caret" aria-hidden="true"> ▾</span>
+            </button>
+            <ul class="dropdown-menu-ai" id="platformMenu" role="listbox" aria-labelledby="platformToggle" aria-hidden="true">
+              <li role="presentation">
+                <button type="button" class="dropdown-item-ai" role="option" data-kind="query" data-base="https://claude.ai/new?q=">
+                  Claude（国际）<span class="dropdown-item-ai-desc">网址栏带出提示词</span>
+                </button>
+              </li>
+              <li role="presentation">
+                <button type="button" class="dropdown-item-ai" role="option" data-kind="copy" data-base="https://www.doubao.com/chat/">
+                  豆包（字节）<span class="dropdown-item-ai-desc">复制后跳转</span>
+                </button>
+              </li>
+              <li role="presentation">
+                <button type="button" class="dropdown-item-ai" role="option" data-kind="copy" data-base="https://yiyan.baidu.com/">
+                  文心一言（百度）<span class="dropdown-item-ai-desc">复制后跳转</span>
+                </button>
+              </li>
+              <li role="presentation">
+                <button type="button" class="dropdown-item-ai" role="option" data-kind="copy" data-base="https://tongyi.aliyun.com/qianwen/">
+                  通义千问（阿里）<span class="dropdown-item-ai-desc">复制后跳转</span>
+                </button>
+              </li>
+              <li role="presentation">
+                <button type="button" class="dropdown-item-ai" role="option" data-kind="copy" data-base="https://kimi.moonshot.cn/">
+                  Kimi<span class="dropdown-item-ai-desc">复制后跳转</span>
+                </button>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
+      <p class="platform-banner" id="platformBanner" role="status" aria-live="polite"></p>
       <div id="outputBox" class="placeholder">点击「生成文案」后将生成可复制的中文提示词，粘贴到 Claude、ChatGPT 等对话中即可代为撰写。</div>
     </div>
 
@@ -418,13 +651,16 @@
       const DEFAULT_OUTPUT_HINT =
         '点击「生成文案」后将生成可复制的中文提示词，粘贴到 Claude、ChatGPT 等对话中即可代为撰写。';
 
-      const CLAUDE_NEW_URL = "https://claude.ai/new?q=";
-
       const btnGenerate = document.getElementById("btnGenerate");
       const btnCopy = document.getElementById("btnCopy");
-      const btnOpenClaude = document.getElementById("btnOpenClaude");
       const outputBox = document.getElementById("outputBox");
       const errorBox = document.getElementById("errorBox");
+      const platformDropdown = document.getElementById("platformDropdown");
+      const platformToggle = document.getElementById("platformToggle");
+      const platformMenu = document.getElementById("platformMenu");
+      const platformBanner = document.getElementById("platformBanner");
+
+      const COPY_THEN_OPEN_HINT = "提示词已复制，请在打开的网页对话框中粘贴。";
 
       let currentMode = "email";
 
@@ -432,13 +668,39 @@
         email: document.getElementById("panel-email"),
         xiaohongshu: document.getElementById("panel-xiaohongshu"),
         report: document.getElementById("panel-report"),
+        ppt: document.getElementById("panel-ppt"),
       };
 
-      const STYLE_LABEL = {
-        种草: "种草安利型（突出体验分享与种草感，语气真诚不油腻）",
-        干货: "干货教程型（步骤或要点清晰，适合收藏与学习）",
-        情感: "情感共鸣型（故事感与共情表达，语气自然）",
+      const PPT_STYLE_NOTE = {
+        商务正式: "版式规整、用词克制书面化，少用网络梗；配色建议低饱和深蓝/灰色系；强调标题句与 KPI。",
+        简洁极简: "每页信息量克制，大号关键词+一张主视觉；避免密集小字堆砌；图示优先于段落。",
+        活泼创意: "可用更鲜明的色块分隔、图示化隐喻与轻量插画感描述（文字说明即可）；仍保持可读与专业分寸。",
       };
+
+      const XHS_TONE_DETAIL = {
+        种草安利: "种草安利型：侧重真实体验与分享感，推荐理由具体可信，少用夸张违禁承诺。",
+        干货教程: "干货教程型：步骤或小标题感清晰，信息密度高，适合收藏与实践。",
+        情感共鸣: "情感共鸣型：故事线与情绪递进自然真诚，避免狗血煽情与贩卖焦虑。",
+        搞笑幽默: "搞笑幽默型：语感轻松好笑、节奏轻快；避免冒犯群体、低俗梗，不以尬笑冲淡主题价值。",
+      };
+
+      function checkedRadio(groupName) {
+        var node = document.querySelector('input[name="' + groupName + '"]:checked');
+        return node ? node.value : "";
+      }
+
+      function xhWordsInstruction(choice) {
+        if (choice === "短篇150字内") {
+          return "总篇幅控制在小红书短小精悍风格：建议标题单行后，正文核心内容（不含文末话题标签区块）压在约 150 字以内，句子紧凑。";
+        }
+        if (choice === "中篇300字") {
+          return "建议标题单列后，正文核心内容围绕约 300 字撰写（可按内容在 ±50～80 字浮动），可分 3～6 小段。";
+        }
+        if (choice === "长篇500字以上") {
+          return "建议标题单列后，正文在不重复灌水的原则上不少于约 500 字，可分多段写出细节、对比、清单或小故事以支撑说服力。";
+        }
+        return "请严格遵循我在上方勾选的字数档位控制篇幅。";
+      }
 
       document.querySelectorAll(".mode-btn").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -465,18 +727,35 @@
           return (
             !document.getElementById("mailRecipient").value.trim() &&
             !document.getElementById("mailPurpose").value.trim() &&
-            !document.getElementById("mailKeyPoints").value.trim()
+            !document.getElementById("mailBg").value.trim() &&
+            !document.getElementById("mailAsk").value.trim() &&
+            !document.getElementById("mailTime").value.trim() &&
+            !document.getElementById("mailExtra").value.trim()
           );
         }
         if (mode === "xiaohongshu") {
-          return !document.getElementById("xhProduct").value.trim() && !document.getElementById("xhAudience").value.trim();
+          return (
+            !document.getElementById("xhTopic").value.trim() &&
+            !document.getElementById("xhReader").value.trim() &&
+            !document.getElementById("xhHighlights").value.trim()
+          );
         }
-        return (
-          !document.getElementById("rptSubject").value.trim() &&
-          !document.getElementById("rptDone").value.trim() &&
-          !document.getElementById("rptIssues").value.trim() &&
-          !document.getElementById("rptNext").value.trim()
-        );
+        if (mode === "ppt") {
+          return (
+            !document.getElementById("pptTheme").value.trim() &&
+            !document.getElementById("pptCore").value.trim() &&
+            !document.getElementById("pptMaterials").value.trim()
+          );
+        }
+        if (mode === "report") {
+          return (
+            !document.getElementById("rptCompleted").value.trim() &&
+            !document.getElementById("rptRisks").value.trim() &&
+            !document.getElementById("rptNextSteps").value.trim() &&
+            !document.getElementById("rptSupport").value.trim()
+          );
+        }
+        return true;
       }
 
       function buildMetaPrompt(mode) {
@@ -484,7 +763,10 @@
         if (mode === "email") {
           var r = document.getElementById("mailRecipient").value;
           var p = document.getElementById("mailPurpose").value;
-          var k = document.getElementById("mailKeyPoints").value;
+          var bg = document.getElementById("mailBg").value;
+          var ask = document.getElementById("mailAsk").value;
+          var time = document.getElementById("mailTime").value;
+          var extra = document.getElementById("mailExtra").value;
           lines = [
             "请你扮演一位经验丰富的中文职场邮件写作顾问。下面是我要写的工作邮件的背景信息；请直接用「简体中文」输出最终可用的邮件文稿，不要做冗长的开场寒暄或条目式复述我的要求。",
             "",
@@ -494,12 +776,18 @@
             "",
             blk("这封邮件希望我达成的目的", p),
             "",
-            blk("需要放进正文的关键信息与事实（时间线、数据、诉求、附件说明等）", k),
+            blk("事件背景（客观说明发生了什么或为何需要写这封邮件，一句话以上的事实亦可）", bg),
+            "",
+            blk("我的诉求（我需要对方协助、确认或执行的具体事项）", ask),
+            "",
+            blk("时间节点（涉及的截止日期、会议时间或我方期望的答复时限）", time),
+            "",
+            blk("补充说明（附件、机密注意、收件人上下文、措辞偏好等其他需要斟酌的地方）", extra),
             "",
             "──────── 请按以下结构与质量要求输出 ────────",
             "",
             "1. 第一行输出邮件主题建议，格式必须为：主题：……",
-            "2. 空一行后输出邮件正文：分段清晰、语气得体，符合收件人身份的尊称或称呼习惯。",
+            "2. 空一行后输出邮件正文：分段清晰、语气得体，符合收件人身份的尊称或称呼习惯；紧扣「背景 → 诉求」逻辑写清来龙去脉；若我上文明示了时间节点，请在正文中自然地予以强调或致谢配合。",
             "3. 不要编造我从未提供的姓名、公司内部职务、具体时间、预算数字或政策条文；必要时用「【待补】」标出并请用一句话提醒我应补充的信息。",
             "4. 正文结尾给出落款占位模板（各占一行）：姓名／部门／电话或邮箱／日期（由我替换）。",
             "5. 整体篇幅适中（约 250～600 字为宜，除非我所给信息明显需要更长篇幅）。不要使用 Markdown 的 # 标题符号。",
@@ -509,61 +797,140 @@
           return lines.join("\n");
         }
         if (mode === "xiaohongshu") {
-          var pr = document.getElementById("xhProduct").value;
-          var aud = document.getElementById("xhAudience").value;
-          var sv = document.getElementById("xhStyle").value;
-          var sl = STYLE_LABEL[sv] || sv;
+          var topic = document.getElementById("xhTopic").value;
+          var reader = document.getElementById("xhReader").value;
+          var hi = document.getElementById("xhHighlights").value;
+          var tone = checkedRadio("xhTone");
+          var wc = checkedRadio("xhWords");
+          var toneLine = XHS_TONE_DETAIL[tone] || "按我选择的「" + tone + "」文风撰写。";
           lines = [
-            "请你扮演熟悉小红书平台的资深中文内容与增长文案作者。我需要一篇可以直接发布或稍作修改即可发布的笔记；请直接用「简体中文」输出成稿正文，不要做长篇创作说明。",
+            "请你扮演熟悉小红书平台规则与阅读习惯的中文内容与增长文案作者。我需要一篇稍作润色即可发布的笔记正文；请直接用「简体中文」输出成稿，不要做长篇方法论讲解或复述我的整张表单。",
             "",
-            "──────── 选题与受众 ────────",
+            "──────── 选题信息 ────────",
             "",
-            blk("产品 / 话题", pr),
+            blk("主题 / 产品（要写什么内容）", topic),
             "",
-            blk("目标读者画像", aud),
+            blk("目标读者（给谁看）", reader),
             "",
-            blk("期望的内容风格（按我选择的类型执行）", sl),
+            blk("内容亮点（希望我重点强调的 1～2 个卖点 / 痛点 / 场景）", hi),
             "",
-            "──────── 成稿结构与表达要求 ────────",
+            blk("我选择的文案风格（请严格遵守这一语气与结构倾向）", tone + "：" + toneLine),
             "",
-            "1. 开头单独一行放「标题」（吸引人、信息量足，避免空话与违规承诺）。",
-            "2. 正文分段排版，小红书常见节奏：钩子 → 核心价值 → 细节展开 → 行动引导 / 友好互动邀请。可用适量 emoji，点到为止。",
-            "3. 根据风格「" + sv + "」拿捏语气：种草型偏重体验与可信度；干货型步骤或清单清楚；情感型故事自然、避免煽情过猛。",
-            "4. 文末附 4～8 个小红书话题标签，格式示例：#关键词# ，与内容强相关（勿编造产品功效或医疗用语）。",
-            "5. 不要捏造我产品没有的特点、检测报告或价格；不熟悉的信息用中性表述或以「以个人体验为例」带过。不要使用 Markdown # 符号。正文总字数约 400～900 字（可视信息量灵活）。",
+            blk("字数档位（请务必按此把控篇幅密度）", wc + "。" + xhWordsInstruction(wc)),
             "",
-            "现在请给出标题 + 正文 + 话题标签（完整可复制）。",
+            "──────── 结构与合规要求 ────────",
+            "",
+            "1. 开头第一行给出笔记「标题」（吸引点击、信息量足；避免空话、虚假功效与违禁医疗用语）。",
+            "2. 正文分段排版，小红书常见节奏：钩子 → 展开亮点 →（视风格决定是否加入步骤或故事）→ 互动收束。「" + tone + "」文风下：" +
+              ((tone === "种草安利") ? "偏重体验证据与可信度，适度口语化。"
+                : (tone === "干货教程") ? "步骤或条目清楚，让读者能跟着做。"
+                : (tone === "情感共鸣") ? "讲好一个小场景或心绪转折，再回到主题。"
+                : "巧用反差、吐槽或轻快比喻，但整体仍要围绕主题有价值。"),
+            "3. 若我写出了具体亮点，请优先在正文前中段用案例、对比或可感知细节写出来，并与标题相呼应。",
+            "4. 文末附 4～8 个话题标签（独立成行或紧随其后均可），每条形如 #关键词# ，与选题强相关。",
+            "5. 「" + wc + "」——请再次以此为硬约束估算段落长度与小标题数量；" +
+              (wc === "短篇150字内" ? "能省则省，不写套话引言。"
+                : wc === "中篇300字" ? "信息完整但不堆砌形容词。"
+                    : "可写得更细但仍避免重复表达。"),
+            "6. 不捏造我从未说过的事实、检测报告、价格与功效；拿捏不准时用「个人体感」「仅供参考」。不要使用 Markdown # 用作标题层级。",
+            "",
+            "现在请输出：标题 + 正文 + 话题标签（完整一段可复制）。",
           ];
           return lines.join("\n");
         }
-        var subj = document.getElementById("rptSubject").value;
-        var done = document.getElementById("rptDone").value;
-        var issues = document.getElementById("rptIssues").value;
-        var next = document.getElementById("rptNext").value;
+        if (mode === "ppt") {
+          var pptTh = document.getElementById("pptTheme").value;
+          var pptAud = checkedRadio("pptAudience");
+          var pptPg = checkedRadio("pptPages");
+          var pptCore = document.getElementById("pptCore").value;
+          var pptMat = document.getElementById("pptMaterials").value;
+          var pptSt = checkedRadio("pptStyle");
+          var stNote = PPT_STYLE_NOTE[pptSt] || ("按我选择的风格「" + pptSt + "」，平衡信息密度与视觉描述。");
+          var pageGuide =
+            pptPg === "5页以内"
+              ? "请将整份大纲控制在约 5 页或以内（若含封面／目录／致谢，请并入总预算并说明必要性）；每页务必极度克制，一页一事。"
+              : pptPg === "10页左右"
+                ? "请按约 8～12 页规划（以「约 10 页」为中值），章节过渡清晰，可按「引入—论证—收尾」递进。"
+                : "请规划不少于约 15 页（可适当超过），允许分章（背景 / 分析 / 方案 / 路线图 / 资源与风险 / Q&A）以支撑论据。";
+          lines = [
+            "请你扮演资深中文演示文稿结构与叙事顾问（熟悉 Keynote／PowerPoint 逻辑，但只需输出文本策划案）。请直接用「简体中文」输出，便于我粘贴到 Claude／ChatGPT 后再生成幻灯片文稿或导图；不要做无关寒暄，也不必输出 .pptx。",
+            "",
+            "──────── 我对这份演示的需求 ────────",
+            "",
+            blk("报告主题（整份 Deck 要讲清的一句话命题）", pptTh),
+            "",
+            blk(
+              "听众与汇报场景",
+              pptAud +
+                "。请据此拿捏信息深度：对公司高层与投资人类读者偏「结论先行 + 一页一观点」；对客户偏「痛点—价值—Proof」；对团队内部可走「里程碑 + 责任人 + Next step」。"
+            ),
+            "",
+            blk("总页数档位（请务必作为硬约束微调章节颗粒度）", pptPg + "。" + pageGuide),
+            "",
+            blk("我心中每页要讲的核心信息与故事线（可粗糙，可分条或分页意向）", pptCore),
+            "",
+            blk("我手头已有的数据／图表／案例素材（仅能使用或合理延续以下信息）", pptMat),
+            "",
+            blk("幻灯片总体视觉与语气风格（用于指导图示与用词）", pptSt + "。" + stNote),
+            "",
+            "──────── 请按以下结构化输出 ────────",
+            "",
+            "对每一页幻灯片依次输出一个完整区块（页数必须与「" + pptPg + "」档位基本一致，首尾可用封面／目录／总结／致谢等常规页占位并计入总页）：",
+            "",
+            "『第 X 页：本页标题（建议 15 字内）』",
+            "一、核心内容要点（请务必列 3～5 条短句条目，互不重复，能让我直接粘到幻灯片要点区）；",
+            "二、建议配图或图表类型（例如：柱状/折线/漏斗示意图、竞品对比表架构、用户旅程箭头图、实拍产品组合图占位、地图热力概念等——写清图表想证明什么讯息）；若本页是纯叙事页，也需说明可用的视觉隐喻；",
+            "三、演讲口播要点（用口语化提纲，帮助我现场讲清楚；含转场钩子与需强调的数字或金句占位；每项口播提纲请控制在 3～6 条短子弹）。",
+            "",
+            "附：最后附一段不超过 120 字的「整体叙事线」提要，帮助我串场；再给一条「若我只有一半时间应先砍哪几页」的取舍建议（只列页码序号或页名）。",
+            "",
+            "禁止编造我从未提供的硬性数据、机密客户名或未授权的案例；空缺处标注【待补数据】并请一句话提示我补充什么。不要使用 Markdown 的 # 作为标题层级，但可以用「第 X 页」这样的纯文本标题。",
+            "",
+            "现在请从第 1 页开始完整输出。",
+          ];
+          return lines.join("\n");
+        }
+        if (mode === "report") {
+        var aud = checkedRadio("rptAudience");
+        var cycle = checkedRadio("rptCycle");
+        var done = document.getElementById("rptCompleted").value;
+        var risks = document.getElementById("rptRisks").value;
+        var nxt = document.getElementById("rptNextSteps").value;
+        var sup = document.getElementById("rptSupport").value;
         lines = [
-          "请你扮演精通向上管理与职场汇报的中文写作顾问。我需要一份简练、可读性强的工作汇报文稿；请直接用「简体中文」输出成稿，不要复述我的条目或先做冗长提纲。读者可能是直属上级或项目组核心成员。",
+          "请你扮演精通向上管理与职场沟通的中文顾问。我需要一份正式的「简体中文」汇报成稿（对应「" + cycle + "」场景，读者为「" + aud + "」）；请直接输出正文，不要做冗长的写作过程说明或逐字复述我上文的字段名。",
           "",
-          "──────── 这周的工作素材 ────────",
+          "──────── 汇报上下文 ────────",
           "",
-          blk("汇报主题 / 时间范围说明", subj),
+          blk("汇报对象（行文语气与信息颗粒度以此为锚点）", aud + "。若对象为跨部门／全员，请兼顾信息对等、少用只有小圈子才懂的暗语；若为直属上级，可略写已知背景但仍保持结论先行。"),
           "",
-          blk("本周已完成工作与成果（可量化或项目节点）", done),
+          blk("汇报周期与场景类型（用于确定时态与收口方式）", cycle + " ——开头需用一两句话标明时间范围或与上一期的承接关系（信息不足时请用中性表述并请我在【】里补具体的起止日期）。"),
           "",
-          blk("当前问题、风险或需要的支持与协调", issues),
+          blk("本期已完成事项（希望我列出 2～4 条，原文已换行分列；若多于或少于请酌情合并或不强行凑数）", done),
           "",
-          blk("下周计划与优先级", next),
+          blk("本期遇到的问题或风险（若某项未写明可略写本节或提示我暂无风险）", risks),
           "",
-          "──────── 输出形态与行文要求 ────────",
+          blk("下一步计划（希望我输出 1～3 条，彼此独立、可跟进）", nxt),
           "",
-          "1. 采用清晰的小标题结构，例如：一、本周完成　二、问题与风险　三、下周计划（可根据内容微调名称）。",
-          "2. 「本周完成」尽量用条目化表述，突出重点与结果，而不是流水账。",
-          "3. 「问题」部分区分：由我推动可解决 vs 需他人/资源协同；语气主动、有担当。",
-          "4. 「下周计划」写明与本周工作的承接关系以及可衡量的进展预期。不要编造我未提供的数据或用词夸大成果；缺的数字用「【数据待补】」并提醒我补充。",
-          "5. 全文语气专业干练，段落不宜过长；总字数大约 350～900 字。不要使用 Markdown # 符号。",
+          blk("需要上级或组织提供的支持／资源（如预算、人手、优先级、法务或品牌背书等）", sup),
           "",
-          "现在请输出完整汇报文稿。",
+          "──────── 输出形态 ────────",
+          "",
+          "1. 根据「" + cycle + "」采用合适的小标题或小节，例如：工作进展／风险与阻塞／下期计划／需协调事项——名称可微调，但要一眼能扫读。" +
+          (cycle === "日报" ? " 日报体量偏短，强调当日关键动作与卡点。"
+              : cycle === "周报" ? " 周报在「本周」「下周」「风险」「支持」四类信息间取得平衡。"
+              : cycle === "月报" ? " 月报可多写一行「阶段成果概要」和数据对比（但不要编造数值）。"
+              : " 项目总结需体现目标—过程—结果的闭环，可加一条「经验教训」占位段。"),
+          "2. 「本期完成」用条目化罗列，每一条尽量包含「做了什么 + 结果 / 里程碑」，避免泛泛而谈的形容词。",
+          "3. 「问题 / 风险」若我未填写，可单列一句「暂未发现高风险」或由你根据前文合理推断仍存在的信息缺口并请我用【补充】占位；但不要虚构具体事故名称。",
+          "4. 「下一步」必须与上文完成项和问题形成承接；若我写得不清楚，可先给出合理推断版本并在括号里提示我复核。",
+          "5. 「需要支持」若我未填写，可写一句「暂无额外诉求」或对前文风险自然带出所需资源但不要越级承诺。全文语气干练、用事实说话；不要使用 Markdown # 符号。篇幅随「" + cycle + "」自然伸缩，通常为 280～900 字（除非我提供的信息非常少）。",
+          "",
+          "现在请输出可直接发送或粘贴到协作文档的最终汇报文稿。",
         ];
         return lines.join("\n");
+        }
+        return "(内部错误：未知模式 \"" + mode + "\")";
       }
 
       function showError(msg) {
@@ -576,8 +943,44 @@
         errorBox.classList.remove("visible");
       }
 
+      function hidePlatformBanner() {
+        platformBanner.textContent = "";
+        platformBanner.classList.remove("visible");
+      }
+
+      function showPlatformBanner(msg) {
+        platformBanner.textContent = msg;
+        platformBanner.classList.add("visible");
+      }
+
+      function setPlatformDropdownOpen(open) {
+        platformDropdown.classList.toggle("is-open", open);
+        platformToggle.setAttribute("aria-expanded", open ? "true" : "false");
+        platformMenu.setAttribute("aria-hidden", open ? "false" : "true");
+      }
+
+      platformToggle.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        setPlatformDropdownOpen(!platformDropdown.classList.contains("is-open"));
+      });
+
+      document.addEventListener("click", function () {
+        setPlatformDropdownOpen(false);
+      });
+
+      platformDropdown.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+      });
+
+      document.addEventListener("keydown", function (ev) {
+        if (ev.key === "Escape") {
+          setPlatformDropdownOpen(false);
+        }
+      });
+
       btnGenerate.addEventListener("click", function () {
         clearError();
+        hidePlatformBanner();
         if (isCurrentFormEmpty(currentMode)) {
           showError("请先在当前模式中至少填写一项内容，以便生成有意义的提示词。");
           outputBox.textContent = DEFAULT_OUTPUT_HINT;
@@ -596,14 +999,48 @@
         return txt;
       }
 
+      platformMenu.querySelectorAll(".dropdown-item-ai").forEach(function (item) {
+        item.addEventListener("click", function () {
+          setPlatformDropdownOpen(false);
+          const txt = getOutputPromptText();
+          if (!txt) {
+            clearError();
+            hidePlatformBanner();
+            showError("没有可复制的内容。");
+            return;
+          }
+          const kind = item.getAttribute("data-kind");
+          const base = item.getAttribute("data-base") || "";
+          clearError();
+          if (kind === "query") {
+            hidePlatformBanner();
+            window.open(base + encodeURIComponent(txt), "_blank", "noopener,noreferrer");
+          } else {
+            (async function () {
+              try {
+                await navigator.clipboard.writeText(txt);
+                hidePlatformBanner();
+                window.open(base, "_blank", "noopener,noreferrer");
+                showPlatformBanner(COPY_THEN_OPEN_HINT);
+              } catch (_) {
+                hidePlatformBanner();
+                showError("复制失败（浏览器可能限制了剪贴板权限），请改用「复制文案」后手动打开对应网站粘贴。");
+              }
+            })();
+          }
+        });
+      });
+
       btnCopy.addEventListener("click", async function () {
         const txt = getOutputPromptText();
         if (!txt) {
           clearError();
+          hidePlatformBanner();
           showError("没有可复制的内容。");
           return;
         }
         clearError();
+        hidePlatformBanner();
         try {
           await navigator.clipboard.writeText(txt);
           const prev = btnCopy.textContent;
@@ -616,17 +1053,6 @@
         }
       });
 
-      btnOpenClaude.addEventListener("click", function () {
-        const txt = getOutputPromptText();
-        if (!txt) {
-          clearError();
-          showError("没有可复制的内容。");
-          return;
-        }
-        clearError();
-        const url = CLAUDE_NEW_URL + encodeURIComponent(txt);
-        window.open(url, "_blank", "noopener,noreferrer");
-      });
     })();
   </script>
 </body>
