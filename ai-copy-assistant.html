@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>AI 文案助手</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-soft: rgba(37, 99, 235, 0.1);
+      --radius: 14px;
+      --shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.06);
+      --font: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: clamp(16px, 4vw, 32px);
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+    }
+
+    header {
+      margin-bottom: 1.75rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #3b82f6, #1d4ed8);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 1.25rem;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.35rem, 4vw, 1.6rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin: 0.25rem 0 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: clamp(16px, 3vw, 22px);
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.45rem;
+    }
+
+    label .hint {
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font: inherit;
+      font-size: 0.95rem;
+      background: #fafbfc;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .modes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .mode-btn {
+      flex: 1;
+      min-width: 100px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      font: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .mode-btn:hover {
+      border-color: #cbd5e1;
+      color: var(--text);
+    }
+
+    .mode-btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .panel {
+      display: none;
+      animation: fade 0.2s ease;
+    }
+
+    .panel.visible {
+      display: block;
+    }
+
+    @keyframes fade {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .row-split {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 560px) {
+      .row-split.two {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    button.primary {
+      flex: 1;
+      min-width: 140px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    button.primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    button.primary:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .out-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .out-header h2 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .out-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    button.secondary {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    button.secondary:hover {
+      background: #f8fafc;
+    }
+
+    #outputBox {
+      min-height: 120px;
+      padding: 14px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 0.95rem;
+    }
+
+    #outputBox.placeholder {
+      color: var(--muted);
+    }
+
+    .error {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+      font-size: 0.875rem;
+      display: none;
+    }
+
+    .error.visible {
+      display: block;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">✦</div>
+        <div>
+          <h1>AI 文案助手</h1>
+          <p class="subtitle">工作邮件 · 小红书 · 工作汇报 · 一键成稿</p>
+        </div>
+      </div>
+    </header>
+
+    <div class="modes" role="tablist" aria-label="文案类型">
+      <button type="button" class="mode-btn active" data-mode="email" role="tab" aria-selected="true">工作邮件</button>
+      <button type="button" class="mode-btn" data-mode="xiaohongshu" role="tab" aria-selected="false">小红书文案</button>
+      <button type="button" class="mode-btn" data-mode="report" role="tab" aria-selected="false">工作汇报</button>
+    </div>
+
+    <div class="card">
+      <!-- 工作邮件 -->
+      <div class="panel visible" id="panel-email">
+        <div class="field">
+          <label for="mailRecipient">收件人身份</label>
+          <input type="text" id="mailRecipient" placeholder="如：直属上级、合作伙伴、全体同事" />
+        </div>
+        <div class="field">
+          <label for="mailPurpose">邮件目的</label>
+          <input type="text" id="mailPurpose" placeholder="如：申请延期、同步进度、致歉说明" />
+        </div>
+        <div class="field">
+          <label for="mailKeyPoints">关键信息</label>
+          <textarea id="mailKeyPoints" placeholder="时间线、诉求、附件说明、需注意的事项…"></textarea>
+        </div>
+      </div>
+
+      <!-- 小红书 -->
+      <div class="panel" id="panel-xiaohongshu">
+        <div class="field">
+          <label for="xhProduct">产品 / 话题</label>
+          <input type="text" id="xhProduct" placeholder="如：护手霜、副业心得、办公软件技巧" />
+        </div>
+        <div class="row-split two">
+          <div class="field">
+            <label for="xhAudience">目标人群</label>
+            <input type="text" id="xhAudience" placeholder="如：通勤白领、宝妈、数码爱好者" />
+          </div>
+          <div class="field">
+            <label for="xhStyle">风格</label>
+            <select id="xhStyle">
+              <option value="种草">种草安利</option>
+              <option value="干货">干货教程</option>
+              <option value="情感">情感共鸣</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 工作汇报 -->
+      <div class="panel" id="panel-report">
+        <div class="field">
+          <label for="rptSubject">汇报主题</label>
+          <input type="text" id="rptSubject" placeholder="如：第一季度项目进展" />
+        </div>
+        <div class="field">
+          <label for="rptDone">本周完成内容</label>
+          <textarea id="rptDone" placeholder="列出本周交付与成果"></textarea>
+        </div>
+        <div class="field">
+          <label for="rptIssues">遇到的问题</label>
+          <textarea id="rptIssues" placeholder="风险、阻塞项、需要的支持"></textarea>
+        </div>
+        <div class="field">
+          <label for="rptNext">下周计划</label>
+          <textarea id="rptNext" placeholder="目标、里程碑、对接人"></textarea>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="primary" id="btnGenerate">生成文案</button>
+      </div>
+      <div class="error" id="errorBox" role="alert"></div>
+    </div>
+
+    <div class="card">
+      <div class="out-header">
+        <h2>生成结果</h2>
+        <div class="out-actions">
+          <button type="button" class="secondary" id="btnCopy">复制文案</button>
+          <button type="button" class="secondary" id="btnOpenClaude">在 Claude 中生成</button>
+        </div>
+      </div>
+      <div id="outputBox" class="placeholder">点击「生成文案」后将生成可复制的中文提示词，粘贴到 Claude、ChatGPT 等对话中即可代为撰写。</div>
+    </div>
+
+    <footer>
+      <p>本页不向任何服务器发送内容；提示词仅在本地浏览器中生成。<br />复制后到 Claude.ai、ChatGPT 或其他大模型产品中粘贴即可。</p>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      const DEFAULT_OUTPUT_HINT =
+        '点击「生成文案」后将生成可复制的中文提示词，粘贴到 Claude、ChatGPT 等对话中即可代为撰写。';
+
+      const CLAUDE_NEW_URL = "https://claude.ai/new?q=";
+
+      const btnGenerate = document.getElementById("btnGenerate");
+      const btnCopy = document.getElementById("btnCopy");
+      const btnOpenClaude = document.getElementById("btnOpenClaude");
+      const outputBox = document.getElementById("outputBox");
+      const errorBox = document.getElementById("errorBox");
+
+      let currentMode = "email";
+
+      const modePanels = {
+        email: document.getElementById("panel-email"),
+        xiaohongshu: document.getElementById("panel-xiaohongshu"),
+        report: document.getElementById("panel-report"),
+      };
+
+      const STYLE_LABEL = {
+        种草: "种草安利型（突出体验分享与种草感，语气真诚不油腻）",
+        干货: "干货教程型（步骤或要点清晰，适合收藏与学习）",
+        情感: "情感共鸣型（故事感与共情表达，语气自然）",
+      };
+
+      document.querySelectorAll(".mode-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          const mode = btn.getAttribute("data-mode");
+          currentMode = mode;
+          document.querySelectorAll(".mode-btn").forEach(function (b) {
+            const on = b.getAttribute("data-mode") === mode;
+            b.classList.toggle("active", on);
+            b.setAttribute("aria-selected", on ? "true" : "false");
+          });
+          Object.keys(modePanels).forEach(function (k) {
+            modePanels[k].classList.toggle("visible", k === mode);
+          });
+        });
+      });
+
+      function blk(title, body) {
+        const t = (body || "").trim();
+        return "【" + title + "】\n" + (t ? t : "（未填写——请你在不臆造事实的前提下，列出我还需要补充的要点，或对整体方向给出合理草稿框架。）");
+      }
+
+      function isCurrentFormEmpty(mode) {
+        if (mode === "email") {
+          return (
+            !document.getElementById("mailRecipient").value.trim() &&
+            !document.getElementById("mailPurpose").value.trim() &&
+            !document.getElementById("mailKeyPoints").value.trim()
+          );
+        }
+        if (mode === "xiaohongshu") {
+          return !document.getElementById("xhProduct").value.trim() && !document.getElementById("xhAudience").value.trim();
+        }
+        return (
+          !document.getElementById("rptSubject").value.trim() &&
+          !document.getElementById("rptDone").value.trim() &&
+          !document.getElementById("rptIssues").value.trim() &&
+          !document.getElementById("rptNext").value.trim()
+        );
+      }
+
+      function buildMetaPrompt(mode) {
+        var lines;
+        if (mode === "email") {
+          var r = document.getElementById("mailRecipient").value;
+          var p = document.getElementById("mailPurpose").value;
+          var k = document.getElementById("mailKeyPoints").value;
+          lines = [
+            "请你扮演一位经验丰富的中文职场邮件写作顾问。下面是我要写的工作邮件的背景信息；请直接用「简体中文」输出最终可用的邮件文稿，不要做冗长的开场寒暄或条目式复述我的要求。",
+            "",
+            "──────── 我提供的背景 ────────",
+            "",
+            blk("收件人身份", r),
+            "",
+            blk("这封邮件希望我达成的目的", p),
+            "",
+            blk("需要放进正文的关键信息与事实（时间线、数据、诉求、附件说明等）", k),
+            "",
+            "──────── 请按以下结构与质量要求输出 ────────",
+            "",
+            "1. 第一行输出邮件主题建议，格式必须为：主题：……",
+            "2. 空一行后输出邮件正文：分段清晰、语气得体，符合收件人身份的尊称或称呼习惯。",
+            "3. 不要编造我从未提供的姓名、公司内部职务、具体时间、预算数字或政策条文；必要时用「【待补】」标出并请用一句话提醒我应补充的信息。",
+            "4. 正文结尾给出落款占位模板（各占一行）：姓名／部门／电话或邮箱／日期（由我替换）。",
+            "5. 整体篇幅适中（约 250～600 字为宜，除非我所给信息明显需要更长篇幅）。不要使用 Markdown 的 # 标题符号。",
+            "",
+            "现在请输出完整文稿。",
+          ];
+          return lines.join("\n");
+        }
+        if (mode === "xiaohongshu") {
+          var pr = document.getElementById("xhProduct").value;
+          var aud = document.getElementById("xhAudience").value;
+          var sv = document.getElementById("xhStyle").value;
+          var sl = STYLE_LABEL[sv] || sv;
+          lines = [
+            "请你扮演熟悉小红书平台的资深中文内容与增长文案作者。我需要一篇可以直接发布或稍作修改即可发布的笔记；请直接用「简体中文」输出成稿正文，不要做长篇创作说明。",
+            "",
+            "──────── 选题与受众 ────────",
+            "",
+            blk("产品 / 话题", pr),
+            "",
+            blk("目标读者画像", aud),
+            "",
+            blk("期望的内容风格（按我选择的类型执行）", sl),
+            "",
+            "──────── 成稿结构与表达要求 ────────",
+            "",
+            "1. 开头单独一行放「标题」（吸引人、信息量足，避免空话与违规承诺）。",
+            "2. 正文分段排版，小红书常见节奏：钩子 → 核心价值 → 细节展开 → 行动引导 / 友好互动邀请。可用适量 emoji，点到为止。",
+            "3. 根据风格「" + sv + "」拿捏语气：种草型偏重体验与可信度；干货型步骤或清单清楚；情感型故事自然、避免煽情过猛。",
+            "4. 文末附 4～8 个小红书话题标签，格式示例：#关键词# ，与内容强相关（勿编造产品功效或医疗用语）。",
+            "5. 不要捏造我产品没有的特点、检测报告或价格；不熟悉的信息用中性表述或以「以个人体验为例」带过。不要使用 Markdown # 符号。正文总字数约 400～900 字（可视信息量灵活）。",
+            "",
+            "现在请给出标题 + 正文 + 话题标签（完整可复制）。",
+          ];
+          return lines.join("\n");
+        }
+        var subj = document.getElementById("rptSubject").value;
+        var done = document.getElementById("rptDone").value;
+        var issues = document.getElementById("rptIssues").value;
+        var next = document.getElementById("rptNext").value;
+        lines = [
+          "请你扮演精通向上管理与职场汇报的中文写作顾问。我需要一份简练、可读性强的工作汇报文稿；请直接用「简体中文」输出成稿，不要复述我的条目或先做冗长提纲。读者可能是直属上级或项目组核心成员。",
+          "",
+          "──────── 这周的工作素材 ────────",
+          "",
+          blk("汇报主题 / 时间范围说明", subj),
+          "",
+          blk("本周已完成工作与成果（可量化或项目节点）", done),
+          "",
+          blk("当前问题、风险或需要的支持与协调", issues),
+          "",
+          blk("下周计划与优先级", next),
+          "",
+          "──────── 输出形态与行文要求 ────────",
+          "",
+          "1. 采用清晰的小标题结构，例如：一、本周完成　二、问题与风险　三、下周计划（可根据内容微调名称）。",
+          "2. 「本周完成」尽量用条目化表述，突出重点与结果，而不是流水账。",
+          "3. 「问题」部分区分：由我推动可解决 vs 需他人/资源协同；语气主动、有担当。",
+          "4. 「下周计划」写明与本周工作的承接关系以及可衡量的进展预期。不要编造我未提供的数据或用词夸大成果；缺的数字用「【数据待补】」并提醒我补充。",
+          "5. 全文语气专业干练，段落不宜过长；总字数大约 350～900 字。不要使用 Markdown # 符号。",
+          "",
+          "现在请输出完整汇报文稿。",
+        ];
+        return lines.join("\n");
+      }
+
+      function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.classList.add("visible");
+      }
+
+      function clearError() {
+        errorBox.textContent = "";
+        errorBox.classList.remove("visible");
+      }
+
+      btnGenerate.addEventListener("click", function () {
+        clearError();
+        if (isCurrentFormEmpty(currentMode)) {
+          showError("请先在当前模式中至少填写一项内容，以便生成有意义的提示词。");
+          outputBox.textContent = DEFAULT_OUTPUT_HINT;
+          outputBox.classList.add("placeholder");
+          return;
+        }
+        outputBox.textContent = buildMetaPrompt(currentMode);
+        outputBox.classList.remove("placeholder");
+      });
+
+      function getOutputPromptText() {
+        const txt = outputBox.textContent.trim();
+        if (!txt || outputBox.classList.contains("placeholder")) {
+          return null;
+        }
+        return txt;
+      }
+
+      btnCopy.addEventListener("click", async function () {
+        const txt = getOutputPromptText();
+        if (!txt) {
+          clearError();
+          showError("没有可复制的内容。");
+          return;
+        }
+        clearError();
+        try {
+          await navigator.clipboard.writeText(txt);
+          const prev = btnCopy.textContent;
+          btnCopy.textContent = "已复制";
+          setTimeout(function () {
+            btnCopy.textContent = prev;
+          }, 1600);
+        } catch (_) {
+          showError("复制失败，请手动选择文案复制。");
+        }
+      });
+
+      btnOpenClaude.addEventListener("click", function () {
+        const txt = getOutputPromptText();
+        if (!txt) {
+          clearError();
+          showError("没有可复制的内容。");
+          return;
+        }
+        clearError();
+        const url = CLAUDE_NEW_URL + encodeURIComponent(txt);
+        window.open(url, "_blank", "noopener,noreferrer");
+      });
+    })();
+  </script>
+</body>
+</html>
