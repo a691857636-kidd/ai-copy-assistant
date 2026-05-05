@@ -355,12 +355,77 @@
       word-break: break-all;
     }
 
+    .ppt-theme-gallery {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(100px, 1fr));
+      gap: 10px;
+    }
+
+    .ppt-theme-item input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .ppt-theme-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      padding: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .ppt-theme-item input[type="radio"]:checked + .ppt-theme-card {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    .ppt-thumb {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 7px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      margin-bottom: 6px;
+    }
+
+    .ppt-thumb .bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      padding-left: 6px;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .ppt-thumb .line {
+      position: absolute;
+      left: 7px;
+      height: 3px;
+      border-radius: 2px;
+      opacity: 0.95;
+    }
+
+    .ppt-thumb .line.l1 { top: 26px; width: 58px; }
+    .ppt-thumb .line.l2 { top: 35px; width: 48px; }
+    .ppt-thumb .line.l3 { top: 44px; width: 54px; }
+
+    .ppt-theme-name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-align: center;
+      color: var(--text);
+    }
+
     .ppt-custom-bg-wrap {
       margin-top: 8px;
-      border: 1px dashed #94a3b8;
-      border-radius: 10px;
-      background: #f8fafc;
-      padding: 10px;
       display: none;
     }
 
@@ -613,12 +678,163 @@
         </div>
         <div class="field">
           <span class="radios-label">风格要求 <span class="hint">以下单选其一</span></span>
-          <div class="radio-group" role="radiogroup" aria-label="PPT 风格">
-            <label class="radio-option"><input type="radio" name="pptStyle" value="深蓝商务" checked /> 深蓝商务<span class="hint">（标题栏深蓝 #1e3a5f，白色背景）</span></label>
-            <label class="radio-option"><input type="radio" name="pptStyle" value="深色科技" /> 深色科技<span class="hint">（全黑背景 #0d0d0d，青色标题 #00d4ff）</span></label>
-            <label class="radio-option"><input type="radio" name="pptStyle" value="浅色简约" /> 浅色简约<span class="hint">（白色背景，灰色标题 #333333）</span></label>
-            <label class="radio-option"><input type="radio" name="pptStyle" value="渐变紫商务" /> 渐变紫商务<span class="hint">（深紫背景 #2d1b69，金色标题 #f0c040）</span></label>
-            <label class="radio-option"><input type="radio" name="pptStyle" value="自定义背景" /> 自定义背景</label>
+          <div class="ppt-theme-gallery" role="radiogroup" aria-label="PPT 主题画廊">
+            <label class="ppt-theme-item">
+              <input type="radio" name="pptStyle" value="深蓝商务" checked />
+              <div class="ppt-theme-card">
+                <div class="ppt-thumb" style="background:#1e3a5f;">
+                  <div class="bar" style="background:#1e3a5f;color:#ffffff;">标题</div>
+                  <div class="line l1" style="background:#9fc5ea;"></div>
+                  <div class="line l2" style="background:#9fc5ea;"></div>
+                  <div class="line l3" style="background:#9fc5ea;"></div>
+                </div>
+                <div class="ppt-theme-name">深蓝商务</div>
+              </div>
+            </label>
+            <label class="ppt-theme-item">
+              <input type="radio" name="pptStyle" value="深色科技" />
+              <div class="ppt-theme-card">
+                <div class="ppt-thumb" style="background:#0d0d0d;">
+                  <div class="bar" style="background:#0d0d0d;color:#00d4ff;">标题</div>
+                  <div class="line l1" style="background:#ffffff;"></div>
+                  <div class="line l2" style="background:#ffffff;"></div>
+                  <div class="line l3" style="background:#ffffff;"></div>
+                </div>
+                <div class="ppt-theme-name">深色科技</div>
+              </div>
+            </label>
+            <label class="ppt-theme-item">
+              <input type="radio" name="pptStyle" value="浅色简约" />
+              <div class="ppt-theme-card">
+                <div class="ppt-thumb" style="background:#ffffff;">
+                  <div class="bar" style="background:#ffffff;color:#333333;">标题</div>
+                  <div class="line l1" style="background:#555555;"></div>
+                  <div class="line l2" style="background:#555555;"></div>
+                  <div class="line l3" style="background:#555555;"></div>
+                  <div style="position:absolute;left:0;bottom:0;width:100%;height:4px;background:#2563eb;"></div>
+                </div>
+                <div class="ppt-theme-name">浅色简约</div>
+              </div>
+            </label>
+            <label class="ppt-theme-item">
+              <input type="radio" name="pptStyle" value="渐变紫" />
+              <div class="ppt-theme-card">
+                <div class="ppt-thumb" style="background:#2d1b69;">
+                  <div class="bar" style="background:#2d1b69;color:#f0c040;">标题</div>
+                  <div class="line l1" style="background:#ffffff;"></div>
+                  <div class="line l2" style="background:#ffffff;"></div>
+                  <div class="line l3" style="background:#ffffff;"></div>
+                </div>
+                <div class="ppt-theme-name">渐变紫</div>
+              </div>
+            </label>
+            <label class="ppt-theme-item">
+              <input type="radio" name="pptStyle" value="中国红" />
+              <div class="ppt-theme-card">
+                <div class="ppt-thumb" style="background:#8b0000;">
+                  <div class="bar" style="background:#8b0000;color:#ffd700;">标题</div>
+                  <div class="line l1" style="background:#ffffff;"></div>
+                  <div class="line l2" style="background:#ffffff;"></div>
+                  <div class="line l3" style="background:#ffffff;"></div>
+                </div>
+                <div class="ppt-theme-name">中国红</div>
+              </div>
+            </label>
+            <label class="ppt-theme-item">
+              <input type="radio" name="pptStyle" value="森林绿" />
+              <div class="ppt-theme-card">
+                <div class="ppt-thumb" style="background:#1a3c2a;">
+                  <div class="bar" style="background:#1a3c2a;color:#7fff7f;">标题</div>
+                  <div class="line l1" style="background:#ffffff;"></div>
+                  <div class="line l2" style="background:#ffffff;"></div>
+                  <div class="line l3" style="background:#ffffff;"></div>
+                </div>
+                <div class="ppt-theme-name">森林绿</div>
+              </div>
+            </label>
+            <label class="ppt-theme-item">
+              <input type="radio" name="pptStyle" value="暖橙商务" />
+              <div class="ppt-theme-card">
+                <div class="ppt-thumb" style="background:#fff8f0;">
+                  <div class="bar" style="background:#fff8f0;color:#c45000;">标题</div>
+                  <div class="line l1" style="background:#333333;"></div>
+                  <div class="line l2" style="background:#333333;"></div>
+                  <div class="line l3" style="background:#333333;"></div>
+                </div>
+                <div class="ppt-theme-name">暖橙商务</div>
+              </div>
+            </label>
+            <label class="ppt-theme-item">
+              <input type="radio" name="pptStyle" value="极简黑白" />
+              <div class="ppt-theme-card">
+                <div class="ppt-thumb" style="background:#ffffff;">
+                  <div style="position:absolute;left:0;top:0;width:4px;height:100%;background:#000000;"></div>
+                  <div class="bar" style="background:#ffffff;color:#000000;">标题</div>
+                  <div class="line l1" style="background:#444444;"></div>
+                  <div class="line l2" style="background:#444444;"></div>
+                  <div class="line l3" style="background:#444444;"></div>
+                </div>
+                <div class="ppt-theme-name">极简黑白</div>
+              </div>
+            </label>
+            <label class="ppt-theme-item">
+              <input type="radio" name="pptStyle" value="天空蓝" />
+              <div class="ppt-theme-card">
+                <div class="ppt-thumb" style="background:#e8f4fd;">
+                  <div class="bar" style="background:#e8f4fd;color:#0066cc;">标题</div>
+                  <div class="line l1" style="background:#333333;"></div>
+                  <div class="line l2" style="background:#333333;"></div>
+                  <div class="line l3" style="background:#333333;"></div>
+                </div>
+                <div class="ppt-theme-name">天空蓝</div>
+              </div>
+            </label>
+            <label class="ppt-theme-item">
+              <input type="radio" name="pptStyle" value="玫瑰金" />
+              <div class="ppt-theme-card">
+                <div class="ppt-thumb" style="background:#2a1a1a;">
+                  <div class="bar" style="background:#2a1a1a;color:#e8b4b8;">标题</div>
+                  <div class="line l1" style="background:#f5e6e8;"></div>
+                  <div class="line l2" style="background:#f5e6e8;"></div>
+                  <div class="line l3" style="background:#f5e6e8;"></div>
+                </div>
+                <div class="ppt-theme-name">玫瑰金</div>
+              </div>
+            </label>
+            <label class="ppt-theme-item">
+              <input type="radio" name="pptStyle" value="深海蓝" />
+              <div class="ppt-theme-card">
+                <div class="ppt-thumb" style="background:#003366;">
+                  <div class="bar" style="background:#003366;color:#66ccff;">标题</div>
+                  <div class="line l1" style="background:#ffffff;"></div>
+                  <div class="line l2" style="background:#ffffff;"></div>
+                  <div class="line l3" style="background:#ffffff;"></div>
+                </div>
+                <div class="ppt-theme-name">深海蓝</div>
+              </div>
+            </label>
+            <label class="ppt-theme-item">
+              <input type="radio" name="pptStyle" value="薄荷清新" />
+              <div class="ppt-theme-card">
+                <div class="ppt-thumb" style="background:#f0faf5;">
+                  <div class="bar" style="background:#f0faf5;color:#00704a;">标题</div>
+                  <div class="line l1" style="background:#333333;"></div>
+                  <div class="line l2" style="background:#333333;"></div>
+                  <div class="line l3" style="background:#333333;"></div>
+                </div>
+                <div class="ppt-theme-name">薄荷清新</div>
+              </div>
+            </label>
+            <label class="ppt-theme-item">
+              <input type="radio" name="pptStyle" value="自定义背景" />
+              <div class="ppt-theme-card">
+                <div class="ppt-thumb" style="background:linear-gradient(135deg,#f8fafc,#e2e8f0);">
+                  <div class="bar" style="background:transparent;color:#334155;">标题</div>
+                  <div style="position:absolute;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#475569;font-size:11px;font-weight:700;">上传图标</div>
+                </div>
+                <div class="ppt-theme-name">自定义</div>
+              </div>
+            </label>
           </div>
           <div class="ppt-custom-bg-wrap" id="pptCustomBgWrap">
             <div class="ppt-custom-bg-hint">上传背景图片（JPG/PNG，建议16:9）</div>
@@ -716,7 +932,15 @@
         深蓝商务: "标题栏深蓝（#1e3a5f）+ 白色背景，适合正式复盘与管理层汇报。",
         深色科技: "深色背景（#0d0d0d）配青色标题（#00d4ff），偏科技感与数据感。",
         浅色简约: "白底灰题（#333333），强调留白和结构清晰。",
-        渐变紫商务: "深紫基调（#2d1b69）配金色标题（#f0c040），高级商务风。",
+        渐变紫: "深紫背景（#2d1b69）配金色标题（#f0c040），高级商务风。",
+        中国红: "中国红背景（#8b0000）配金色标题，适合庆典与总结。",
+        森林绿: "森林绿背景（#1a3c2a）配浅绿色标题，沉稳自然。",
+        暖橙商务: "暖橙浅底（#fff8f0）配橙色标题（#c45000），温暖商务感。",
+        极简黑白: "白底黑题与左侧装饰线，极简、清晰、现代。",
+        天空蓝: "浅天蓝底（#e8f4fd）配蓝色标题（#0066cc），清爽专业。",
+        玫瑰金: "深底配玫瑰金标题（#e8b4b8），高级质感风。",
+        深海蓝: "深海蓝背景（#003366）配浅蓝标题（#66ccff），科技商务风。",
+        薄荷清新: "薄荷浅底（#f0faf5）配绿色标题（#00704a），轻盈清新。",
         自定义背景: "每页使用用户上传图片作为背景，标题与正文需提升可读性。",
       };
 
@@ -1104,10 +1328,18 @@
         pptx.title = title;
 
         var styleMap = {
-          深蓝商务: { bg: "FFFFFF", bar: "1E3A5F", title: "FFFFFF", body: "1E293B", note: "64748B" },
-          深色科技: { bg: "0D0D0D", bar: "0D0D0D", title: "00D4FF", body: "EAF8FF", note: "94A3B8" },
-          浅色简约: { bg: "FFFFFF", bar: "FFFFFF", title: "333333", body: "1F2937", note: "64748B" },
-          渐变紫商务: { bg: "2D1B69", bar: "2D1B69", title: "F0C040", body: "F8F4E8", note: "D4C7A1" },
+          深蓝商务: { bg: "1E3A5F", bar: "1E3A5F", title: "FFFFFF", body: "BFD8F2", note: "9FB8CF" },
+          深色科技: { bg: "0D0D0D", bar: "0D0D0D", title: "00D4FF", body: "FFFFFF", note: "A5D9E5" },
+          浅色简约: { bg: "FFFFFF", bar: "FFFFFF", title: "333333", body: "555555", note: "7A7A7A" },
+          渐变紫: { bg: "2D1B69", bar: "2D1B69", title: "F0C040", body: "FFFFFF", note: "E8D7A2" },
+          中国红: { bg: "8B0000", bar: "8B0000", title: "FFD700", body: "FFFFFF", note: "F4DFA1" },
+          森林绿: { bg: "1A3C2A", bar: "1A3C2A", title: "7FFF7F", body: "FFFFFF", note: "D1EED8" },
+          暖橙商务: { bg: "FFF8F0", bar: "FFF8F0", title: "C45000", body: "333333", note: "7A5E47" },
+          极简黑白: { bg: "FFFFFF", bar: "FFFFFF", title: "000000", body: "444444", note: "6B7280", leftLine: "000000" },
+          天空蓝: { bg: "E8F4FD", bar: "E8F4FD", title: "0066CC", body: "333333", note: "5C6B7A" },
+          玫瑰金: { bg: "2A1A1A", bar: "2A1A1A", title: "E8B4B8", body: "F5E6E8", note: "D6BEC2" },
+          深海蓝: { bg: "003366", bar: "003366", title: "66CCFF", body: "FFFFFF", note: "CFE6F5" },
+          薄荷清新: { bg: "F0FAF5", bar: "F0FAF5", title: "00704A", body: "333333", note: "5F786C" },
         };
         var useCustomBg = styleChoice === "自定义背景" && !!customBgDataUrl;
         var styleCfg = styleMap[styleChoice] || styleMap["深蓝商务"];
@@ -1138,6 +1370,16 @@
             });
           } else {
             slide.background = { color: styleCfg.bg };
+            if (styleCfg.leftLine) {
+              slide.addShape(pptx.ShapeType.rect, {
+                x: 0,
+                y: 0,
+                w: 0.1,
+                h: 7.5,
+                fill: { color: styleCfg.leftLine },
+                line: { color: styleCfg.leftLine },
+              });
+            }
             slide.addShape(pptx.ShapeType.rect, {
               x: 0,
               y: 0,
