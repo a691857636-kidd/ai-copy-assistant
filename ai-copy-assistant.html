@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>AI 文案助手</title>
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
       --bg: #f4f6f9;
@@ -298,6 +300,61 @@
       margin-top: 12px;
     }
 
+    .attach-area {
+      margin-top: 8px;
+      margin-bottom: 10px;
+    }
+
+    .attach-dropzone {
+      border: 1.5px dashed #94a3b8;
+      border-radius: 12px;
+      background: #f8fafc;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .attach-dropzone:hover,
+    .attach-dropzone.is-dragover {
+      border-color: var(--accent);
+      background: #eef4ff;
+    }
+
+    .attach-main {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .attach-sub {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .attach-file-row {
+      margin-top: 10px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .attach-file-row.visible {
+      display: flex;
+    }
+
+    .attach-file-name {
+      font-size: 0.86rem;
+      color: var(--text);
+      word-break: break-all;
+    }
+
     #outputBox {
       min-height: 120px;
       padding: 14px;
@@ -545,6 +602,26 @@
         </div>
       </div>
 
+      <div class="attach-area">
+        <label>附件上传</label>
+        <input
+          id="attachInput"
+          type="file"
+          accept=".jpg,.jpeg,.png,.csv,.xlsx,.xls"
+          style="display: none;"
+        />
+        <div class="attach-dropzone" id="attachDropzone">
+          <div class="attach-main">点击或拖拽文件到这里上传</div>
+          <div class="attach-sub">
+            支持 JPG、PNG、CSV、Excel（.xlsx/.xls），大小不超过 10MB。可上传图片或数据文件，AI将结合附件内容生成结果
+          </div>
+        </div>
+        <div class="attach-file-row" id="attachFileRow">
+          <div class="attach-file-name" id="attachFileName"></div>
+          <button type="button" class="secondary" id="attachRemoveBtn">删除</button>
+        </div>
+      </div>
+
       <div class="actions">
         <button type="button" class="primary" id="btnGenerate">生成文案</button>
       </div>
@@ -579,11 +656,17 @@
       const btnCopyResult = document.getElementById("btnCopyResult");
       const outputBox = document.getElementById("outputBox");
       const errorBox = document.getElementById("errorBox");
+      const attachInput = document.getElementById("attachInput");
+      const attachDropzone = document.getElementById("attachDropzone");
+      const attachFileRow = document.getElementById("attachFileRow");
+      const attachFileName = document.getElementById("attachFileName");
+      const attachRemoveBtn = document.getElementById("attachRemoveBtn");
       const outPptDirectRow = document.getElementById("outPptDirectRow");
       const btnDirectPPT = document.getElementById("btnDirectPPT");
       const pptAipptToast = document.getElementById("pptAipptToast");
 
       let pptAipptToastTimer = null;
+      let currentAttachment = null;
 
       let currentMode = "email";
 
@@ -623,6 +706,157 @@
           return "建议标题单列后，正文在不重复灌水的原则上不少于约 500 字，可分多段写出细节、对比、清单或小故事以支撑说服力。";
         }
         return "请严格遵循我在上方勾选的字数档位控制篇幅。";
+      }
+
+      function formatFileSize(bytes) {
+        if (bytes < 1024) {
+          return bytes + " B";
+        }
+        if (bytes < 1024 * 1024) {
+          return (bytes / 1024).toFixed(1) + " KB";
+        }
+        return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+      }
+
+      function isAllowedAttachment(file) {
+        var name = (file && file.name ? file.name : "").toLowerCase();
+        return /\.(jpg|jpeg|png|csv|xlsx|xls)$/.test(name);
+      }
+
+      function clearAttachment() {
+        currentAttachment = null;
+        attachInput.value = "";
+        attachFileName.textContent = "";
+        attachFileRow.classList.remove("visible");
+      }
+
+      function setAttachmentView(fileName, detail) {
+        attachFileName.textContent = fileName + "（" + detail + "）";
+        attachFileRow.classList.add("visible");
+      }
+
+      function parseCsvToSummary(file) {
+        return new Promise(function (resolve, reject) {
+          Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: function (results) {
+              try {
+                var rows = Array.isArray(results.data) ? results.data.slice(0, 50) : [];
+                resolve(JSON.stringify(rows, null, 2));
+              } catch (e) {
+                reject(e);
+              }
+            },
+            error: function (err) {
+              reject(err);
+            },
+          });
+        });
+      }
+
+      function parseExcelToSummary(file) {
+        return new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function (evt) {
+            try {
+              var data = evt.target && evt.target.result;
+              var wb = XLSX.read(data, { type: "array" });
+              var sheetName = wb.SheetNames[0];
+              var sheet = wb.Sheets[sheetName];
+              var rows = XLSX.utils.sheet_to_json(sheet, { defval: "" }).slice(0, 50);
+              resolve(JSON.stringify(rows, null, 2));
+            } catch (e) {
+              reject(e);
+            }
+          };
+          reader.onerror = function () {
+            reject(new Error("读取 Excel 失败"));
+          };
+          reader.readAsArrayBuffer(file);
+        });
+      }
+
+      function readImageAsDataUrl(file) {
+        return new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function (evt) {
+            resolve(String((evt.target && evt.target.result) || ""));
+          };
+          reader.onerror = function () {
+            reject(new Error("读取图片失败"));
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function processAttachmentFile(file) {
+        if (!file) {
+          return;
+        }
+        if (!isAllowedAttachment(file)) {
+          showError("仅支持 JPG、PNG、CSV、Excel（.xlsx/.xls）文件。");
+          return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          showError("文件超过 10MB 限制，请压缩后重试。");
+          return;
+        }
+        clearError();
+
+        var lowerName = file.name.toLowerCase();
+        if (/\.(jpg|jpeg|png)$/.test(lowerName)) {
+          var dataUrl = await readImageAsDataUrl(file);
+          currentAttachment = {
+            kind: "image",
+            fileName: file.name,
+            fileSize: file.size,
+            dataUrl: dataUrl,
+          };
+          setAttachmentView(file.name, "图片 · " + formatFileSize(file.size));
+          return;
+        }
+
+        if (/\.csv$/.test(lowerName)) {
+          var csvSummary = await parseCsvToSummary(file);
+          currentAttachment = {
+            kind: "data",
+            fileName: file.name,
+            fileSize: file.size,
+            summary: csvSummary,
+          };
+          setAttachmentView(file.name, "CSV · " + formatFileSize(file.size));
+          return;
+        }
+
+        var excelSummary = await parseExcelToSummary(file);
+        currentAttachment = {
+          kind: "data",
+          fileName: file.name,
+          fileSize: file.size,
+          summary: excelSummary,
+        };
+        setAttachmentView(file.name, "Excel · " + formatFileSize(file.size));
+      }
+
+      function appendAttachmentToPrompt(basePrompt) {
+        if (!currentAttachment) {
+          return basePrompt;
+        }
+        if (currentAttachment.kind === "image") {
+          return (
+            basePrompt +
+            "\n\n以下是用户上传的图片（base64）：\n[IMAGE_DATA_URL]" +
+            currentAttachment.dataUrl +
+            "[/IMAGE_DATA_URL]\n请结合图片内容生成结果"
+          );
+        }
+        return (
+          basePrompt +
+          "\n\n以下是用户上传的数据：\n" +
+          currentAttachment.summary +
+          "\n请结合数据内容进行分析并生成结果"
+        );
       }
 
       function hidePptAipptToast() {
@@ -671,6 +905,50 @@
       });
 
       syncPptOnlyResultExtras();
+
+      attachDropzone.addEventListener("click", function () {
+        attachInput.click();
+      });
+
+      attachInput.addEventListener("change", async function (ev) {
+        try {
+          var file = ev.target && ev.target.files && ev.target.files[0];
+          await processAttachmentFile(file);
+        } catch (err) {
+          showError(err && err.message ? err.message : "附件处理失败");
+          clearAttachment();
+        }
+      });
+
+      ["dragenter", "dragover"].forEach(function (evtName) {
+        attachDropzone.addEventListener(evtName, function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          attachDropzone.classList.add("is-dragover");
+        });
+      });
+
+      ["dragleave", "drop"].forEach(function (evtName) {
+        attachDropzone.addEventListener(evtName, function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          attachDropzone.classList.remove("is-dragover");
+        });
+      });
+
+      attachDropzone.addEventListener("drop", async function (ev) {
+        try {
+          var file = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+          await processAttachmentFile(file);
+        } catch (err) {
+          showError(err && err.message ? err.message : "附件处理失败");
+          clearAttachment();
+        }
+      });
+
+      attachRemoveBtn.addEventListener("click", function () {
+        clearAttachment();
+      });
 
       function blk(title, body) {
         const t = (body || "").trim();
@@ -1012,7 +1290,7 @@
         clearError();
         hidePptAipptToast();
 
-        var pptPrompt = buildMetaPrompt("ppt");
+        var pptPrompt = appendAttachmentToPrompt(buildMetaPrompt("ppt"));
         var prevText = btnDirectPPT.textContent;
         btnDirectPPT.disabled = true;
         btnDirectPPT.textContent = "正在生成PPT...";
@@ -1058,7 +1336,7 @@
           outputBox.classList.add("placeholder");
           return;
         }
-        const prompt = buildMetaPrompt(mode);
+        const prompt = appendAttachmentToPrompt(buildMetaPrompt(mode));
         const previousText = btnGenerate.textContent;
         btnGenerate.disabled = true;
         btnGenerate.textContent = "生成中...";
