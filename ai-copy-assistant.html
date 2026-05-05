@@ -355,6 +355,25 @@
       word-break: break-all;
     }
 
+    .ppt-custom-bg-wrap {
+      margin-top: 8px;
+      border: 1px dashed #94a3b8;
+      border-radius: 10px;
+      background: #f8fafc;
+      padding: 10px;
+      display: none;
+    }
+
+    .ppt-custom-bg-wrap.visible {
+      display: block;
+    }
+
+    .ppt-custom-bg-hint {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
     #outputBox {
       min-height: 120px;
       padding: 14px;
@@ -595,9 +614,19 @@
         <div class="field">
           <span class="radios-label">风格要求 <span class="hint">以下单选其一</span></span>
           <div class="radio-group" role="radiogroup" aria-label="PPT 风格">
-            <label class="radio-option"><input type="radio" name="pptStyle" value="商务正式" checked /> 商务正式<span class="hint">（稳重、结论先行）</span></label>
-            <label class="radio-option"><input type="radio" name="pptStyle" value="简洁极简" /> 简洁极简<span class="hint">（大图少字、留白）</span></label>
-            <label class="radio-option"><input type="radio" name="pptStyle" value="活泼创意" /> 活泼创意<span class="hint">（图标与色彩更活泼）</span></label>
+            <label class="radio-option"><input type="radio" name="pptStyle" value="深蓝商务" checked /> 深蓝商务<span class="hint">（标题栏深蓝 #1e3a5f，白色背景）</span></label>
+            <label class="radio-option"><input type="radio" name="pptStyle" value="深色科技" /> 深色科技<span class="hint">（全黑背景 #0d0d0d，青色标题 #00d4ff）</span></label>
+            <label class="radio-option"><input type="radio" name="pptStyle" value="浅色简约" /> 浅色简约<span class="hint">（白色背景，灰色标题 #333333）</span></label>
+            <label class="radio-option"><input type="radio" name="pptStyle" value="渐变紫商务" /> 渐变紫商务<span class="hint">（深紫背景 #2d1b69，金色标题 #f0c040）</span></label>
+            <label class="radio-option"><input type="radio" name="pptStyle" value="自定义背景" /> 自定义背景</label>
+          </div>
+          <div class="ppt-custom-bg-wrap" id="pptCustomBgWrap">
+            <div class="ppt-custom-bg-hint">上传背景图片（JPG/PNG，建议16:9）</div>
+            <input id="pptBgInput" type="file" accept=".jpg,.jpeg,.png" />
+            <div class="attach-file-row" id="pptBgFileRow">
+              <div class="attach-file-name" id="pptBgFileName"></div>
+              <button type="button" class="secondary" id="pptBgRemoveBtn">删除</button>
+            </div>
           </div>
         </div>
       </div>
@@ -661,12 +690,18 @@
       const attachFileRow = document.getElementById("attachFileRow");
       const attachFileName = document.getElementById("attachFileName");
       const attachRemoveBtn = document.getElementById("attachRemoveBtn");
+      const pptCustomBgWrap = document.getElementById("pptCustomBgWrap");
+      const pptBgInput = document.getElementById("pptBgInput");
+      const pptBgFileRow = document.getElementById("pptBgFileRow");
+      const pptBgFileName = document.getElementById("pptBgFileName");
+      const pptBgRemoveBtn = document.getElementById("pptBgRemoveBtn");
       const outPptDirectRow = document.getElementById("outPptDirectRow");
       const btnDirectPPT = document.getElementById("btnDirectPPT");
       const pptAipptToast = document.getElementById("pptAipptToast");
 
       let pptAipptToastTimer = null;
       let currentAttachment = null;
+      let pptCustomBackgroundDataUrl = "";
 
       let currentMode = "email";
 
@@ -678,9 +713,11 @@
       };
 
       const PPT_STYLE_NOTE = {
-        商务正式: "版式规整、用词克制书面化，少用网络梗；配色建议低饱和深蓝/灰色系；强调标题句与 KPI。",
-        简洁极简: "每页信息量克制，大号关键词+一张主视觉；避免密集小字堆砌；图示优先于段落。",
-        活泼创意: "可用更鲜明的色块分隔、图示化隐喻与轻量插画感描述（文字说明即可）；仍保持可读与专业分寸。",
+        深蓝商务: "标题栏深蓝（#1e3a5f）+ 白色背景，适合正式复盘与管理层汇报。",
+        深色科技: "深色背景（#0d0d0d）配青色标题（#00d4ff），偏科技感与数据感。",
+        浅色简约: "白底灰题（#333333），强调留白和结构清晰。",
+        渐变紫商务: "深紫基调（#2d1b69）配金色标题（#f0c040），高级商务风。",
+        自定义背景: "每页使用用户上传图片作为背景，标题与正文需提升可读性。",
       };
 
       const XHS_TONE_DETAIL = {
@@ -728,6 +765,48 @@
         attachInput.value = "";
         attachFileName.textContent = "";
         attachFileRow.classList.remove("visible");
+      }
+
+      function syncPptCustomBgVisibility() {
+        var style = checkedRadio("pptStyle");
+        if (style === "自定义背景") {
+          pptCustomBgWrap.classList.add("visible");
+        } else {
+          pptCustomBgWrap.classList.remove("visible");
+        }
+      }
+
+      function clearPptCustomBackground() {
+        pptCustomBackgroundDataUrl = "";
+        if (pptBgInput) {
+          pptBgInput.value = "";
+        }
+        if (pptBgFileName) {
+          pptBgFileName.textContent = "";
+        }
+        if (pptBgFileRow) {
+          pptBgFileRow.classList.remove("visible");
+        }
+      }
+
+      async function processPptBackgroundFile(file) {
+        if (!file) {
+          return;
+        }
+        var name = (file.name || "").toLowerCase();
+        if (!/\.(jpg|jpeg|png)$/.test(name)) {
+          showError("自定义背景仅支持 JPG/PNG 图片。");
+          return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          showError("自定义背景图片超过 10MB 限制。");
+          return;
+        }
+        clearError();
+        var dataUrl = await readImageAsDataUrl(file);
+        pptCustomBackgroundDataUrl = dataUrl;
+        pptBgFileName.textContent = file.name + "（" + formatFileSize(file.size) + "）";
+        pptBgFileRow.classList.add("visible");
       }
 
       function setAttachmentView(fileName, detail) {
@@ -950,6 +1029,32 @@
         clearAttachment();
       });
 
+      document.querySelectorAll('input[name="pptStyle"]').forEach(function (el) {
+        el.addEventListener("change", function () {
+          syncPptCustomBgVisibility();
+        });
+      });
+
+      syncPptCustomBgVisibility();
+
+      if (pptBgInput) {
+        pptBgInput.addEventListener("change", async function (ev) {
+          try {
+            var file = ev.target && ev.target.files && ev.target.files[0];
+            await processPptBackgroundFile(file);
+          } catch (err) {
+            showError(err && err.message ? err.message : "自定义背景处理失败");
+            clearPptCustomBackground();
+          }
+        });
+      }
+
+      if (pptBgRemoveBtn) {
+        pptBgRemoveBtn.addEventListener("click", function () {
+          clearPptCustomBackground();
+        });
+      }
+
       function blk(title, body) {
         const t = (body || "").trim();
         return "【" + title + "】\n" + (t ? t : "（未填写——请你在不臆造事实的前提下，列出我还需要补充的要点，或对整体方向给出合理草稿框架。）");
@@ -985,7 +1090,7 @@
         }
       }
 
-      function buildAndDownloadPptx(pptJson, theme) {
+      function buildAndDownloadPptx(pptJson, theme, styleChoice, customBgDataUrl) {
         var title = (pptJson && typeof pptJson.title === "string" && pptJson.title.trim()) ? pptJson.title.trim() : (theme || "PPT报告");
         var slides = (pptJson && Array.isArray(pptJson.slides)) ? pptJson.slides : [];
         if (!slides.length) {
@@ -998,27 +1103,57 @@
         pptx.subject = title;
         pptx.title = title;
 
+        var styleMap = {
+          深蓝商务: { bg: "FFFFFF", bar: "1E3A5F", title: "FFFFFF", body: "1E293B", note: "64748B" },
+          深色科技: { bg: "0D0D0D", bar: "0D0D0D", title: "00D4FF", body: "EAF8FF", note: "94A3B8" },
+          浅色简约: { bg: "FFFFFF", bar: "FFFFFF", title: "333333", body: "1F2937", note: "64748B" },
+          渐变紫商务: { bg: "2D1B69", bar: "2D1B69", title: "F0C040", body: "F8F4E8", note: "D4C7A1" },
+        };
+        var useCustomBg = styleChoice === "自定义背景" && !!customBgDataUrl;
+        var styleCfg = styleMap[styleChoice] || styleMap["深蓝商务"];
+
         slides.forEach(function (s) {
           var slide = pptx.addSlide();
           var slideTitle = (s && typeof s.title === "string" && s.title.trim()) ? s.title.trim() : "未命名页面";
           var points = (s && Array.isArray(s.points)) ? s.points.filter(function (p) { return typeof p === "string" && p.trim(); }) : [];
           var note = (s && typeof s.note === "string") ? s.note.trim() : "";
 
-          slide.background = { color: "FFFFFF" };
-          slide.addShape(pptx.ShapeType.rect, {
-            x: 0,
-            y: 0,
-            w: 13.33,
-            h: 0.95,
-            fill: { color: "1E3A5F" },
-            line: { color: "1E3A5F" },
-          });
+          if (useCustomBg) {
+            slide.background = { data: customBgDataUrl };
+            slide.addShape(pptx.ShapeType.rect, {
+              x: 0.42,
+              y: 0.15,
+              w: 12.5,
+              h: 1.0,
+              fill: { color: "000000", transparency: 38 },
+              line: { color: "000000", transparency: 100 },
+            });
+            slide.addShape(pptx.ShapeType.rect, {
+              x: 0.42,
+              y: 1.32,
+              w: 12.5,
+              h: 5.85,
+              fill: { color: "000000", transparency: 45 },
+              line: { color: "000000", transparency: 100 },
+            });
+          } else {
+            slide.background = { color: styleCfg.bg };
+            slide.addShape(pptx.ShapeType.rect, {
+              x: 0,
+              y: 0,
+              w: 13.33,
+              h: 0.95,
+              fill: { color: styleCfg.bar },
+              line: { color: styleCfg.bar },
+            });
+          }
+
           slide.addText(slideTitle, {
-            x: 0.45,
-            y: 0.22,
+            x: 0.5,
+            y: 0.24,
             w: 12.4,
             h: 0.48,
-            color: "FFFFFF",
+            color: useCustomBg ? "FFFFFF" : styleCfg.title,
             fontSize: 22,
             bold: true,
             fontFace: "Microsoft YaHei",
@@ -1035,7 +1170,7 @@
             y: 1.25,
             w: 12.0,
             h: 5.3,
-            color: "1E293B",
+            color: useCustomBg ? "FFFFFF" : styleCfg.body,
             fontSize: 20,
             breakLine: true,
             paraSpaceAfterPt: 14,
@@ -1048,7 +1183,7 @@
               y: 6.75,
               w: 12.0,
               h: 0.55,
-              color: "64748B",
+              color: useCustomBg ? "FFFFFF" : styleCfg.note,
               fontSize: 12,
               italic: true,
               fontFace: "Microsoft YaHei",
@@ -1313,7 +1448,11 @@
           }
 
           var pptTheme = document.getElementById("pptTheme").value || "PPT报告";
-          await buildAndDownloadPptx(parsed, pptTheme);
+          var pptStyleChoice = checkedRadio("pptStyle");
+          if (pptStyleChoice === "自定义背景" && !pptCustomBackgroundDataUrl) {
+            throw new Error("请选择“自定义背景”图片后再生成 PPT。");
+          }
+          await buildAndDownloadPptx(parsed, pptTheme, pptStyleChoice, pptCustomBackgroundDataUrl);
           outputBox.textContent = "PPT 已生成并开始下载。";
           outputBox.classList.remove("placeholder");
         } catch (err) {
